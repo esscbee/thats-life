@@ -10,9 +10,16 @@
 		<script src="js/three.min.js"></script>
 		<script src="js/OrbitControls.js"></script>
 		<script>
-			var BOARD_SIZE = 40;
-			var SIDE = 5 / BOARD_SIZE;
+			var BOARD_SIZE_Y = 100;
+			var BOARD_SIZE_X = BOARD_SIZE_Y * 2;
+			var SIDE = 5 / BOARD_SIZE_Y;
 			var GAP = SIDE / 10;
+			var DEAD_COLOR = 0x1f1f1f;
+			var ALIVE_COLOR = 0x00a000;
+
+			var DEAD = 0;
+			var ALIVE = 1;
+			var TRAIL = 2;
 
 			var scene = new THREE.Scene();
 			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
@@ -32,13 +39,16 @@
 			// scene.add( cube );
 			// console.dir(cube);
 			var cubes = [];
-			for(var i = 0; i < BOARD_SIZE * 2; i++) {
+			for(var i = 0; i < BOARD_SIZE_X; i++) {
 				cubes[i] = [];
-				for(var j = 0; j < BOARD_SIZE; j++) {
-					material = new THREE.MeshPhongMaterial({ color: Math.random() * 0xffffff, specular: 0x00ff00, shininess: 30 });
+				for(var j = 0; j < BOARD_SIZE_Y; j++) {
+					var color = DEAD_COLOR; // Math.random() * 0xffffff
+					material = new THREE.MeshPhongMaterial({ color: color, specular: 0x00ff00, shininess: 30 });
 					var cube = new THREE.Mesh( geometry, material );
-					cube.position.x = (i - (BOARD_SIZE)) * (SIDE + GAP);
-					cube.position.y = (j - (BOARD_SIZE / 2)) * (SIDE + GAP);
+					cube.position.x = (i - (BOARD_SIZE_X / 2)) * (SIDE + GAP);
+					cube.position.y = (j - (BOARD_SIZE_Y / 2)) * (SIDE + GAP);
+					cube.lifeX = i;
+					cube.lifeY = j;
 					scene.add(cube);
 					cubes[i][j] = cube;
 					// console.log('cube (' + i + ', ' + j + '):');
@@ -90,7 +100,6 @@
 			controls.damping = 0.2;
 			controls.addEventListener( 'change', render );
 
-			render();
 
 			// window.onresize = function(event) {
 			// 	//camera.aspect = window.innerWidth / window.innerHeight;
@@ -98,6 +107,20 @@
 			// 	renderer.setSize( window.innerWidth, window.innerHeight );
 			// 	console.log('resize: ' + window.innerWidth + ', ' + window.innerHeight);
 			// }
+
+			var board = [];
+			for(var i = 0; i < BOARD_SIZE_X; i++) {
+				board[i] = [];
+				for(var j = 0; j < BOARD_SIZE_Y; j++) {
+					var cellValue = DEAD;
+					if(j == (BOARD_SIZE_Y / 2)) {
+						cellValue = ALIVE;
+						cubes[i][j].material.color.setHex(ALIVE_COLOR);
+					}
+					board[i][j] = cellValue;
+				}
+			}
+			render();
 
 		</script>
 	</body>
