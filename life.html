@@ -6,99 +6,22 @@
 			canvas { width: 100%; height: 100% }
 		</style>
 	</head>
-	<body onclick="render()">
+	<body onclick="boardModel.generate()">
 		<script src="js/three.min.js"></script>
 		<script src="js/OrbitControls.js"></script>
+		<script src="LIFE.js"></script>
+		<script src="ThreeDBoard.js"></script>
+		<script src="BoardModel.js"></script>
 		<script>
-			var BOARD_SIZE_Y = 100;
+			var BOARD_SIZE_Y = 200;
 			var BOARD_SIZE_X = BOARD_SIZE_Y * 2;
-			var SIDE = 5 / BOARD_SIZE_Y;
-			var GAP = SIDE / 10;
-			var DEAD_COLOR = 0x1f1f1f;
-			var ALIVE_COLOR = 0x00a000;
+			var board = new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document);
+			var boardModel = new LIFE.BoardModel(BOARD_SIZE_X, BOARD_SIZE_Y, board);
 
-			var DEAD = 0;
-			var ALIVE = 1;
-			var TRAIL = 2;
-
-			var scene = new THREE.Scene();
-			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-
-			var renderer = new THREE.WebGLRenderer();
-			renderer.setSize( window.innerWidth, window.innerHeight );
-			document.body.appendChild( renderer.domElement );
-
-			var geometry = new THREE.CubeGeometry( SIDE, SIDE, SIDE);
-			var material;
-			if(true) {
-				material = new THREE.MeshPhongMaterial({ color: 0x009900, specular: 0x00ff00, shininess: 30 });
-			} else {
-				material = new THREE.MeshBasicMaterial( { color: 0x00a000 } )
+			var render = function() {
+				board.render();
+				// console.log('render!');
 			}
-			// var cube = new THREE.Mesh( geometry, material );
-			// scene.add( cube );
-			// console.dir(cube);
-			var cubes = [];
-			for(var i = 0; i < BOARD_SIZE_X; i++) {
-				cubes[i] = [];
-				for(var j = 0; j < BOARD_SIZE_Y; j++) {
-					var color = DEAD_COLOR; // Math.random() * 0xffffff
-					material = new THREE.MeshPhongMaterial({ color: color, specular: 0x00ff00, shininess: 30 });
-					var cube = new THREE.Mesh( geometry, material );
-					cube.position.x = (i - (BOARD_SIZE_X / 2)) * (SIDE + GAP);
-					cube.position.y = (j - (BOARD_SIZE_Y / 2)) * (SIDE + GAP);
-					cube.lifeX = i;
-					cube.lifeY = j;
-					scene.add(cube);
-					cubes[i][j] = cube;
-					// console.log('cube (' + i + ', ' + j + '):');
-					// console.dir(cube.position);
-				}
-			}
-
-			camera.position.z = 5;
-			if(false) {
-				var directionalLight = new THREE.DirectionalLight( 0xffffff );
-				directionalLight.position.set( 0, 1, 1 ).normalize();
-				scene.add( directionalLight );
-			} else if (false) {
-				var spotLight = new THREE.SpotLight( 0xffffff );
-				spotLight.position.set( 100, 1000, 100 );
-
-				spotLight.castShadow = true;
-
-				spotLight.shadowMapWidth = 1024;
-				spotLight.shadowMapHeight = 1024;
-
-				spotLight.shadowCameraNear = 500;
-				spotLight.shadowCameraFar = 4000;
-				spotLight.shadowCameraFov = 30;
-
-				scene.add( spotLight );
-			} else if(true) {
-				var light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
-				scene.add( light );
-			}
-
-			renderer.render(scene, camera);
-
-			var render = function () {
-				// requestAnimationFrame( render );
-				// for(var i = 0; i < cubes.length; i++) {
-				// 	for(var j = 0; j < BOARD_SIZE; j++) {
-				// 		var cube = cubes[i][j];
-				// 		cube.rotation.x += 0.1;
-				// 		cube.rotation.y += 0.1;
-				// 		// cube.material.color.setHex(Math.random() * 0xffffff);
-				// 	}
-				// }
-
-				renderer.render(scene, camera);
-			};
-
-			var controls = new THREE.OrbitControls( camera, renderer.domElement );
-			controls.damping = 0.2;
-			controls.addEventListener( 'change', render );
 
 
 			// window.onresize = function(event) {
@@ -107,20 +30,11 @@
 			// 	renderer.setSize( window.innerWidth, window.innerHeight );
 			// 	console.log('resize: ' + window.innerWidth + ', ' + window.innerHeight);
 			// }
-
-			var board = [];
-			for(var i = 0; i < BOARD_SIZE_X; i++) {
-				board[i] = [];
-				for(var j = 0; j < BOARD_SIZE_Y; j++) {
-					var cellValue = DEAD;
-					if(j == (BOARD_SIZE_Y / 2)) {
-						cellValue = ALIVE;
-						cubes[i][j].material.color.setHex(ALIVE_COLOR);
-					}
-					board[i][j] = cellValue;
-				}
+			var dj = BOARD_SIZE_Y / 2;
+			var startJ = (BOARD_SIZE_X - dj) / 2;
+			for(var j = startJ; j < (startJ + dj); j++) {
+				boardModel.setCell(j, BOARD_SIZE_Y / 2, ALIVE);
 			}
-			render();
 
 		</script>
 	</body>
