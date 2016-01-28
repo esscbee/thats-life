@@ -54,7 +54,7 @@ LIFE.BoardModel.prototype.generate_old = function() {
 	var endDate = new Date();
 	if(needsRender)
 		board.render();
-	console.log('Generate: ' + (endDate.getTime() - startDate.getTime() ));
+	// console.log('Generate: ' + (endDate.getTime() - startDate.getTime() ));
 }
 
 function set(arr, i, j, val) {
@@ -132,7 +132,7 @@ LIFE.BoardModel.prototype.generate = function() {
 		}
 	}
 	var endScan = new Date();
-	console.log('Generate scan: ' + (endScan.getTime() - startDate.getTime()));
+	// console.log('Generate scan: ' + (endScan.getTime() - startDate.getTime()));
 	if(!anyToProcess)
 		return;
 	var trailValue = DEAD;
@@ -172,18 +172,18 @@ LIFE.BoardModel.prototype.generate = function() {
 		}
 	}
 	var endGenerate = new Date();
-	console.log('Generate - endGenerate: ' + (endGenerate.getTime() - endScan.getTime()));
+	// console.log('Generate - endGenerate: ' + (endGenerate.getTime() - endScan.getTime()));
 	for(var i in neighborUpdate) {
 		var o = neighborUpdate[i];
 		this.addNeighbors(o.i, o.j, o.val);
 	}
 	var endNeighbors = new Date();
-	console.log('Generate - endNeighbors (' + neighborUpdate.length + '): ' + (endNeighbors.getTime() - endGenerate.getTime()));
+	// console.log('Generate - endNeighbors (' + neighborUpdate.length + '): ' + (endNeighbors.getTime() - endGenerate.getTime()));
 	this.cells = newCells;
-	if(needsRender)
+	if(false && needsRender)
 		board.render();
 	var endDate = new Date();
-	console.log('Generate - render: ' + (endDate.getTime() - endNeighbors.getTime() ));
+	// console.log('Generate - render: ' + (endDate.getTime() - endNeighbors.getTime() ));
 }
 
 LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
@@ -202,6 +202,22 @@ LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
 	col[j] = state;
 	this.addNeighbors(i, j, 1);
 	this.board.setCell(i, j, state, render);
+}
+
+LIFE.BoardModel.prototype.play = function(window) {
+	if(this.playing == undefined) {
+		this.playing = true;
+		var This = this;
+		function play() {
+			if(This.playing != undefined) {
+				This.generate();
+				window.setTimeout(play, 100);
+			}
+		}
+		play();
+	} else {
+		this.playing = undefined;
+	}
 }
 
 LIFE.BoardModel.prototype.liveNeighbors = function(i, j) {

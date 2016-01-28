@@ -11,7 +11,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 
 	this.renderer = new THREE.WebGLRenderer();
 	this.renderer.setSize( window.innerWidth, window.innerHeight );
-	document.body.appendChild( this.renderer.domElement );
+	var canvasElement = document.body.appendChild( this.renderer.domElement );
 
 	// var cube = new THREE.Mesh( geometry, material );
 	// scene.add( cube );
@@ -59,6 +59,11 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 			This.render();
 		} );
 	}
+
+	function click(event) {
+		console.dir(event);
+	}
+	canvasElement.onclick = click;
 }
 
 LIFE.ThreeDBoard.prototype = Object.create(Object.prototype);
@@ -114,6 +119,14 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, doRender) {
 	if(doRender == undefined || doRender == true)
 		this.render();
 
+}
+LIFE.ThreeDBoard.prototype.animate = function() {
+	var This = this;
+	function animate() {
+		requestAnimationFrame( animate );
+		this.render();
+	}
+	animate();
 }
 // LIFE.ThreeDBoard.prototype.render = function () {
 // 		// requestAnimationFrame( render );
