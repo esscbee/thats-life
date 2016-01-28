@@ -1,5 +1,6 @@
 LIFE.BoardModel = function(width, height, board) {
 	this.cells = [];
+	this.liveNeighborList = [];
 	this.width = width;
 	this.height = height;
 
@@ -58,12 +59,50 @@ LIFE.BoardModel.prototype.generate_old = function() {
 
 function set(arr, i, j, val) {
 	var col = arr[i];
-	if(!col) {
+	if(col == undefined) {
 		col = [];
 		arr[i] = col;
 	}
 	col[j] = val;
 }
+
+function add(arr, i, j, val) {
+	var col = arr[i];
+	if(col == undefined) {
+		col = [];
+		arr[i] = col;
+	}
+	var curVal = col[j];
+	if(curVal) {
+		curVal += val;
+		if(curVal < 0)
+			curVal = 0;
+	} else {
+		if(val > 0)
+			curVal = val;
+		else
+			curVal = 0;
+	}
+	col[j] = curVal;
+
+}
+LIFE.BoardModel.prototype.addNeighbors = function(i, j, val) {
+	var arr = this.liveNeighborList;
+	add(arr, i-1, j-1, val);
+	add(arr, i-1, j, val);
+	add(arr, i-1, j+1, val);
+	add(arr, i, j-1, val);
+	add(arr, i, j+1, val);
+	add(arr, i+1, j-1, val);
+	add(arr, i+1, j, val);
+	add(arr, i+1, j+1, val);
+}
+
+function appendUpdate(arr, i, j, val) {
+	var o = {i: i, j: j, val: val};
+	arr[arr.length] = o;
+}
+
 LIFE.BoardModel.prototype.generate = function() {
 	var startDate = new Date();
 	// straightfoward and slow
@@ -72,13 +111,13 @@ LIFE.BoardModel.prototype.generate = function() {
 	var cellsToProcess = [];
 	var anyToProcess = false;
 
-	for(i = 0; i < this.width; i++) {
+	for(var i = 0; i < this.width; i++) {
 		var col = this.cells[i];
-		if(!col)
+		if(col == undefined)
 			continue;
-		for(j = 0 ; j < this.height; j++) {
+		for(var j = 0 ; j < this.height; j++) {
 			var val = col[j];
-			if(!val || val != ALIVE)
+			if(val == undefined || val != ALIVE)
 				continue;
 			anyToProcess = true;
 			set(cellsToProcess, i-1, j-1, true);
@@ -92,16 +131,19 @@ LIFE.BoardModel.prototype.generate = function() {
 			set(cellsToProcess, i+1, j+1, true);
 		}
 	}
+	var endScan = new Date();
+	console.log('Generate scan: ' + (endScan.getTime() - startDate.getTime()));
 	if(!anyToProcess)
 		return;
 	var trailValue = DEAD;
-	for(i = 0; i < this.width; i++) {
+	var neighborUpdate = [];
+	for(var i = 0; i < this.width; i++) {
 		var toProcess = cellsToProcess[i];
-		if(!toProcess)
+		if(toProcess == undefined)
 			continue;
 		newCells[i] = [];
-		for(j = 0; j < this.height; j++) {
-			if(!toProcess[j])
+		for(var j = 0; j < this.height; j++) {
+			if(toProcess[j] == undefined)
 				continue;
 			var liveNeighbors = this.liveNeighbors(i, j);
 			var col = this.cells[i];
@@ -109,17 +151,19 @@ LIFE.BoardModel.prototype.generate = function() {
 			var val;
 			if(col)
 				val = col[j];
-			if(!val)
+			if(val == undefined)
 				val = DEAD;
 			if(val == ALIVE) {
 				if(liveNeighbors <= 1 || liveNeighbors >= 4) {
 					this.board.setCell(i, j, trailValue, false);
+					appendUpdate(neighborUpdate, i, j, -1);
 					val = trailValue;
 					needsRender = true;
 				}
 			} else {
 				if(liveNeighbors == 3) {
 					this.board.setCell(i, j, ALIVE, false);
+					appendUpdate(neighborUpdate, i, j, 1);
 					val = ALIVE;
 					needsRender = true;
 				}
@@ -127,15 +171,24 @@ LIFE.BoardModel.prototype.generate = function() {
 			newCells[i][j] = val;
 		}
 	}
+	var endGenerate = new Date();
+	console.log('Generate - endGenerate: ' + (endGenerate.getTime() - endScan.getTime()));
+	for(var i in neighborUpdate) {
+		var o = neighborUpdate[i];
+		this.addNeighbors(o.i, o.j, o.val);
+	}
+	var endNeighbors = new Date();
+	console.log('Generate - endNeighbors (' + neighborUpdate.length + '): ' + (endNeighbors.getTime() - endGenerate.getTime()));
 	this.cells = newCells;
-	var endDate = new Date();
 	if(needsRender)
 		board.render();
-	console.log('Generate: ' + (endDate.getTime() - startDate.getTime() ));
+	var endDate = new Date();
+	console.log('Generate - render: ' + (endDate.getTime() - endNeighbors.getTime() ));
 }
 
-LIFE.BoardModel.prototype.setCell = function(i, j, state) {
+LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
 	var col = this.cells[i];
+	var inc = state == ALIVE ? 1 : -1;
 	if(col) {
 		var val = col[j];
 		if(val && val == state)
@@ -147,22 +200,17 @@ LIFE.BoardModel.prototype.setCell = function(i, j, state) {
 		this.cells[i] = col;
 	}
 	col[j] = state;
-	this.board.setCell(i, j, state);
+	this.addNeighbors(i, j, 1);
+	this.board.setCell(i, j, state, render);
 }
 
 LIFE.BoardModel.prototype.liveNeighbors = function(i, j) {
 	var ret = 0;
-	for(ii = i - 1 ; ii <= (i + 1); ii++) {
-		var col = this.cells[ii];
-		if(!col)
-			continue;
-		for(jj = j - 1; jj <= (j + 1); jj++) {
-			if(ii == i && jj == j)
-				continue;
-			var val = col[jj];
-			if(val && val == ALIVE)
-				ret++;
-		}
+	var col = this.liveNeighborList[i];
+	if(col) {
+		var val = col[j];
+		if(val)
+			ret = val;
 	}
 	return ret;
 }

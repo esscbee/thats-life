@@ -18,6 +18,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	// console.dir(cube);
 	this.cubes = [];
 
+
 	this.camera.position.z = 5;
 	var light;
 	if(false) {
@@ -79,10 +80,10 @@ LIFE.ThreeDBoard.prototype.addToggleCallback = function(tcb) {
 }
 LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, doRender) {
 	var col = this.cubes[i];
-	if(!col && (!state || state == DEAD))
+	if(col == undefined && (state == undefined || state == DEAD))
 		return;
 
-	if(!col) {
+	if(col == undefined) {
 		col = [];
 		this.cubes[i] = col;
 	}
@@ -110,7 +111,7 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, doRender) {
 		}
 	}
 
-	if(!doRender || doRender == true)
+	if(doRender == undefined || doRender == true)
 		this.render();
 
 }

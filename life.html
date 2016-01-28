@@ -30,11 +30,13 @@
 			// 	renderer.setSize( window.innerWidth, window.innerHeight );
 			// 	console.log('resize: ' + window.innerWidth + ', ' + window.innerHeight);
 			// }
-			var dj = BOARD_SIZE_Y / 2;
-			var startJ = (BOARD_SIZE_X - dj) / 2;
+			var dj = 300;
+			var startJ = Math.floor((BOARD_SIZE_X - dj) / 2);
+			var theI = Math.floor(BOARD_SIZE_Y / 2);
 			for(var j = startJ; j < (startJ + dj); j++) {
-				boardModel.setCell(j, BOARD_SIZE_Y / 2, ALIVE);
+				boardModel.setCell(j, theI, ALIVE, false);
 			}
+			board.render();
 
 		</script>
 	</body>
