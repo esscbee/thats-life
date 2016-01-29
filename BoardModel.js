@@ -1,17 +1,18 @@
 LIFE.BoardModel = function(width, height, board) {
 	this.cells = [];
+	this.setCellQ = [];
 	this.liveNeighborList = [];
 	this.width = width;
 	this.height = height;
 
-	console.log(DEAD);
+	// console.log(DEAD);
 
-	for(i = 0; i < width; i++) {
-		this.cells[i] = [];
-		for(j = 0; j < height; j++) {
-			this.cells[i][j] = DEAD;
-		}
-	}
+	// for(i = 0; i < width; i++) {
+	// 	this.cells[i] = [];
+	// 	for(j = 0; j < height; j++) {
+	// 		this.cells[i][j] = DEAD;
+	// 	}
+	// }
 
 	board.addToggleCallback(this);
 	this.board = board;
@@ -19,43 +20,6 @@ LIFE.BoardModel = function(width, height, board) {
 
 LIFE.BoardModel.prototype = Object.create(Object.prototype);
 LIFE.BoardModel.prototype.constructor = LIFE.BoardModel;
-LIFE.BoardModel.prototype.toggleCallBack = function(x, y, state) {
-	this.board[x][y] = state;
-}
-
-LIFE.BoardModel.prototype.generate_old = function() {
-	var startDate = new Date();
-	// straightfoward and slow
-	var needsRender = false;
-	var newCells = [];
-	var trailValue = DEAD;
-	for(i = 0; i < this.width; i++) {
-		newCells[i] = [];
-		for(j = 0; j < this.height; j++) {
-			var liveNeighbors = this.liveNeighbors(i, j);
-			var val = this.cells[i][j];
-			if(val == ALIVE) {
-				if(liveNeighbors <= 1 || liveNeighbors >= 4) {
-					this.board.setCell(i, j, trailValue, false);
-					val = trailValue;
-					needsRender = true;
-				}
-			} else {
-				if(liveNeighbors == 3) {
-					this.board.setCell(i, j, ALIVE, false);
-					val = ALIVE;
-					needsRender = true;
-				}
-			}
-			newCells[i][j] = val;
-		}
-	}
-	this.cells = newCells;
-	var endDate = new Date();
-	if(needsRender)
-		board.render();
-	// console.log('Generate: ' + (endDate.getTime() - startDate.getTime() ));
-}
 
 function set(arr, i, j, val) {
 	var col = arr[i];
@@ -73,7 +37,7 @@ function add(arr, i, j, val) {
 		arr[i] = col;
 	}
 	var curVal = col[j];
-	if(curVal) {
+	if(curVal != undefined) {
 		curVal += val;
 		if(curVal < 0)
 			curVal = 0;
@@ -88,6 +52,8 @@ function add(arr, i, j, val) {
 }
 LIFE.BoardModel.prototype.addNeighbors = function(i, j, val) {
 	var arr = this.liveNeighborList;
+	i = Number(i);
+	j = Number(j);
 	add(arr, i-1, j-1, val);
 	add(arr, i-1, j, val);
 	add(arr, i-1, j+1, val);
@@ -99,11 +65,14 @@ LIFE.BoardModel.prototype.addNeighbors = function(i, j, val) {
 }
 
 function appendUpdate(arr, i, j, val) {
-	var o = {i: i, j: j, val: val};
+	var o = {i: Number(i), j: Number(j), val: val};
 	arr[arr.length] = o;
 }
 
 LIFE.BoardModel.prototype.generate = function() {
+	if(this.generating)
+		return;
+	this.generating = true;
 	var startDate = new Date();
 	// straightfoward and slow
 	var needsRender = false;
@@ -111,87 +80,113 @@ LIFE.BoardModel.prototype.generate = function() {
 	var cellsToProcess = [];
 	var anyToProcess = false;
 
-	for(var i = 0; i < this.width; i++) {
+	for(var i in this.cells) {
 		var col = this.cells[i];
-		if(col == undefined)
-			continue;
-		for(var j = 0 ; j < this.height; j++) {
+		for(var j in col) {
 			var val = col[j];
 			if(val == undefined || val != ALIVE)
 				continue;
 			anyToProcess = true;
-			set(cellsToProcess, i-1, j-1, true);
-			set(cellsToProcess, i-1, j, true);
-			set(cellsToProcess, i-1, j+1, true);
-			set(cellsToProcess, i, j-1, true);
-			set(cellsToProcess, i, j, true);
-			set(cellsToProcess, i, j+1, true);
-			set(cellsToProcess, i+1, j-1, true);
-			set(cellsToProcess, i+1, j, true);
-			set(cellsToProcess, i+1, j+1, true);
+			var ii = Number(i);
+			var jj = Number(j);
+			set(cellsToProcess, ii-1, jj-1, true);
+			set(cellsToProcess, ii-1, jj, true);
+			set(cellsToProcess, ii-1, jj+1, true);
+			set(cellsToProcess, ii, jj-1, true);
+			set(cellsToProcess, ii, jj, true);
+			set(cellsToProcess, ii, jj+1, true);
+			set(cellsToProcess, ii+1, jj-1, true);
+			set(cellsToProcess, ii+1, jj, true);
+			set(cellsToProcess, ii+1, jj+1, true);
 		}
 	}
 	var endScan = new Date();
 	// console.log('Generate scan: ' + (endScan.getTime() - startDate.getTime()));
-	if(!anyToProcess)
-		return;
-	var trailValue = DEAD;
-	var neighborUpdate = [];
-	for(var i = 0; i < this.width; i++) {
-		var toProcess = cellsToProcess[i];
-		if(toProcess == undefined)
-			continue;
-		newCells[i] = [];
-		for(var j = 0; j < this.height; j++) {
-			if(toProcess[j] == undefined)
+	if(anyToProcess) {
+		var trailValue = DEAD;
+		var neighborUpdate = [];
+		for(var i in cellsToProcess) {
+			var toProcess = cellsToProcess[i];
+			if(toProcess == undefined)
 				continue;
-			var liveNeighbors = this.liveNeighbors(i, j);
+			newCells[i] = [];
 			var col = this.cells[i];
-
-			var val;
-			if(col)
-				val = col[j];
-			if(val == undefined)
-				val = DEAD;
-			if(val == ALIVE) {
-				if(liveNeighbors <= 1 || liveNeighbors >= 4) {
-					this.board.setCell(i, j, trailValue, false);
-					appendUpdate(neighborUpdate, i, j, -1);
-					val = trailValue;
-					needsRender = true;
+			for(var j in toProcess) {
+				if(toProcess[j] == undefined)
+					continue;
+				var liveNeighbors = this.liveNeighbors(i, j);
+				var val = undefined;
+				if(col)
+					val = col[j];
+				if(val == undefined)
+					val = DEAD;
+				if(val == ALIVE) {
+					if(liveNeighbors <= 1 || liveNeighbors >= 4) {
+						this.board.setCell(i, j, trailValue, false);
+						appendUpdate(neighborUpdate, i, j, -1);
+						val = trailValue;
+						needsRender = true;
+					}
+				} else {
+					if(liveNeighbors == 3) {
+						this.board.setCell(i, j, ALIVE, false);
+						appendUpdate(neighborUpdate, i, j, 1);
+						val = ALIVE;
+						needsRender = true;
+					}
 				}
-			} else {
-				if(liveNeighbors == 3) {
-					this.board.setCell(i, j, ALIVE, false);
-					appendUpdate(neighborUpdate, i, j, 1);
-					val = ALIVE;
-					needsRender = true;
-				}
+				newCells[i][j] = val;
 			}
-			newCells[i][j] = val;
 		}
+		var endGenerate = new Date();
+		// console.log('Generate - endGenerate: ' + (endGenerate.getTime() - endScan.getTime()));
+		for(var i in neighborUpdate) {
+			var o = neighborUpdate[i];
+			this.addNeighbors(o.i, o.j, o.val);
+		}
+		var endNeighbors = new Date();
+		// console.log('Generate - endNeighbors (' + neighborUpdate.length + '): ' + (endNeighbors.getTime() - endGenerate.getTime()));
+		this.cells = newCells;
+		if(false && needsRender)
+			board.render();
 	}
-	var endGenerate = new Date();
-	// console.log('Generate - endGenerate: ' + (endGenerate.getTime() - endScan.getTime()));
-	for(var i in neighborUpdate) {
-		var o = neighborUpdate[i];
-		this.addNeighbors(o.i, o.j, o.val);
+	this.generating = false;
+	// console.log('Done generating: ');
+	// console.dir(this.cells);
+	// console.dir(this.liveNeighborList);
+	if(this.setCellQ.length != 0) {
+		for(var n in this.setCellQ) {
+			var o = this.setCellQ[n];
+			this.setCell(o.i, o.j, o.state);
+		}
+		this.setCellQ = [];
 	}
-	var endNeighbors = new Date();
-	// console.log('Generate - endNeighbors (' + neighborUpdate.length + '): ' + (endNeighbors.getTime() - endGenerate.getTime()));
-	this.cells = newCells;
-	if(false && needsRender)
-		board.render();
-	var endDate = new Date();
+
 	// console.log('Generate - render: ' + (endDate.getTime() - endNeighbors.getTime() ));
 }
 
 LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
+	// console.log('setCell: (' + i + ', ' + j + ') ' + state);
+	if(isNaN(i) || isNaN(j))
+		return;
+	if(this.generating) {
+		this.setCellQ.push({i: i, j: j, state: state});
+		// console.log('already geenrating');
+		return;
+	}
 	var col = this.cells[i];
+	if(state == undefined) {
+		state = ALIVE;
+		if(col != undefined) {
+			var cell = col[j];
+			if(cell == ALIVE)
+				state = DEAD;
+		}
+	}
 	var inc = state == ALIVE ? 1 : -1;
 	if(col) {
 		var val = col[j];
-		if(val && val == state)
+		if(val != undefined && val == state)
 			return;
 	} else {
 		if(state == DEAD)
@@ -200,8 +195,11 @@ LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
 		this.cells[i] = col;
 	}
 	col[j] = state;
-	this.addNeighbors(i, j, 1);
+	this.addNeighbors(i, j, inc);
 	this.board.setCell(i, j, state, render);
+	// console.log('setCell');
+	// console.dir(this.cells);
+	// console.dir(this.liveNeighborList);
 }
 
 LIFE.BoardModel.prototype.play = function(window) {
@@ -229,4 +227,9 @@ LIFE.BoardModel.prototype.liveNeighbors = function(i, j) {
 			ret = val;
 	}
 	return ret;
+}
+LIFE.BoardModel.prototype.term = function() {
+	this.cells = null;
+	this.liveNeighborList = null;
+	this.board = null;
 }

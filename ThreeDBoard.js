@@ -3,13 +3,16 @@ var ALIVE_COLOR = 0x00a000;
 LIFE.ThreeDBoard = function(width, height, window, document) {
 	this.BOARD_SIZE_X = width;
 	this.BOARD_SIZE_Y = height;
-	this.SIDE = 5 / width ;
-	this.GAP = this.SIDE / 10;
+	this.SIDE = .9 ;
+	this.GAP = .1;
+	this.objects = [];
+	this.MUL = 10;
 
 	this.scene = new THREE.Scene();
 	this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
 	this.renderer = new THREE.WebGLRenderer();
+	this.window = window;
 	this.renderer.setSize( window.innerWidth, window.innerHeight );
 	var canvasElement = document.body.appendChild( this.renderer.domElement );
 
@@ -19,16 +22,69 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	this.cubes = [];
 
 
-	this.camera.position.z = 5;
+	// this.camera.position.y = 1;
+	this.camera.position.z = this.MUL * this.BOARD_SIZE_X * .05;
 	var light;
-	if(false) {
-		light = new THREE.AmbientLight(0xbbbbbb);
-		this.scene.add( light );
+	if(true) {
+		var ambientLight = new THREE.AmbientLight( 0x606060 );
+		this.scene.add( ambientLight );
 	}
 
 	if(true) {
+		var geometry = new THREE.PlaneBufferGeometry( (this.MUL * width) * (this.SIDE + this.GAP), (this.MUL * height) * (this.SIDE + this.GAP) );
+		geometry.rotateX( - Math.PI / 2 );
+
+		var plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false, opacity: 0, transparent: true } ) );
+		plane.rotation.x = Math.PI / 2;
+		this.scene.add( plane );
+		this.objects.push(plane);
+	}
+	if(false) {
+			var size = 500, step = 50;
+
+			var geometry = new THREE.Geometry();
+
+			for ( var i = - size; i <= size; i += step ) {
+
+				geometry.vertices.push( new THREE.Vector3( - size, 0, i ) );
+				geometry.vertices.push( new THREE.Vector3(   size, 0, i ) );
+
+				geometry.vertices.push( new THREE.Vector3( i, 0, - size ) );
+				geometry.vertices.push( new THREE.Vector3( i, 0,   size ) );
+
+			}
+
+			var material = new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 0.2, transparent: true } );
+
+			var line = new THREE.LineSegments( geometry, material );
+			this.scene.add( line );
+
+	} else {
+
+			var geometry = new THREE.Geometry();
+
+			var top = - (Math.floor(this.MUL * this.BOARD_SIZE_Y / 2) + .5) * (this.SIDE + this.GAP);
+			for ( var i = 0; i <= (this.MUL * BOARD_SIZE_X) + 1; i ++ ) {
+				var x = (i - Math.floor(this.MUL * this.BOARD_SIZE_X / 2) - .5) * (this.SIDE + this.GAP);
+				geometry.vertices.push( new THREE.Vector3( x, top, 0 ) );
+				geometry.vertices.push( new THREE.Vector3( x , -top, 0 ) );
+			}
+			var left = - (Math.floor(this.MUL * this.BOARD_SIZE_X / 2) + .5) * (this.SIDE + this.GAP);
+			for ( var j = 0; j <= (this.MUL * BOARD_SIZE_Y) + 1; j ++ ) {
+				var y = (j - Math.floor(this.MUL * this.BOARD_SIZE_Y / 2) - .5) * (this.SIDE + this.GAP);
+				geometry.vertices.push( new THREE.Vector3( left, y, 0 ) );
+				geometry.vertices.push( new THREE.Vector3( -left , y, 0 ) );
+			}
+
+			var material = new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 0.2, transparent: true } );
+
+			var line = new THREE.LineSegments( geometry, material );
+			this.scene.add( line );
+		}
+
+	if(true) {
 		light = new THREE.DirectionalLight( 0xffffff );
-		light.position.set( 0, 1, 1 ).normalize();
+		light.position.set( 0, 0, 5 ).normalize();
 		this.scene.add(light);
 	}
 
@@ -39,18 +95,15 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 		this.globalCube = new THREE.Mesh( geometry, material );
 		this.scene.add(this.globalCube);
 	}
-
+	this.raycaster = new THREE.Raycaster();
+	this.mouse = new THREE.Vector2();
 
 	var This = this;
 
-	if(false) {
-		var map = THREE.ImageUtils.loadTexture( "images/img.png", undefined, function() {
-	        var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff, fog: true } );
-	        var sprite = new THREE.Sprite( material );
-	        This.scene.add( sprite );
-			This.renderer.render(This.scene, This.camera);
-		});
-	}
+	var rollOverGeo = new THREE.BoxGeometry( this.SIDE, this.SIDE, this.SIDE);
+	var rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.5, transparent: true } );
+	this.rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
+	this.scene.add( this.rollOverMesh );
 
 	if(true) {
 		var controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
@@ -60,10 +113,55 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 		} );
 	}
 
-	function click(event) {
-		console.dir(event);
+	function position(event) {
+		var position = {};
+		This.mouse.set( ( event.offsetX / window.innerWidth ) * 2 - 1, - ( event.offsetY / window.innerHeight ) * 2 + 1 );
+
+		This.raycaster.setFromCamera( This.mouse, This.camera );
+
+		var intersects = This.raycaster.intersectObjects( This.objects );
+
+		if ( intersects.length > 0 ) {
+
+			var dx = This.SIDE + This.GAP;
+			var dx2 = dx / 2;
+			var intersect = intersects[ 0 ];
+			if(false) {
+				This.rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
+				This.rollOverMesh.position.divideScalar( dx ).floor().multiplyScalar( dx ).addScalar( dx );
+			} else {
+				position.x = Math.floor((intersect.point.x + dx2) / dx) * dx;
+				position.y = Math.floor((intersect.point.y + dx2) / dx) * dx;
+			}
+		}
+		return position;
 	}
-	canvasElement.onclick = click;
+	function mouseClick(event) {
+		var pos = position(event);
+		var dx = This.SIDE + This.GAP;
+		// console.log('mouseClick - dx: ' + dx);
+		// console.dir(pos);
+		var lifeX = Math.floor(pos.x / dx + This.BOARD_SIZE_X / 2);
+		var lifeY = Math.floor(pos.y / dx + This.BOARD_SIZE_Y / 2);
+		if(This.tcb) {
+			This.tcb.setCell(lifeX, lifeY);
+		}
+
+	}
+	function mouseMove(event) {
+		var pos = position(event);
+		This.rollOverMesh.position.x = pos.x;
+		This.rollOverMesh.position.y = pos.y;
+	}
+
+	function windowClose(event) {
+		This.terminated = true;
+		This.cubes = null;
+		This.tcb.term();
+	}
+	canvasElement.onclick = mouseClick;
+	canvasElement.onmousemove = mouseMove;
+	window.onbeforeunload = windowClose;
 }
 
 LIFE.ThreeDBoard.prototype = Object.create(Object.prototype);
@@ -93,11 +191,11 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, doRender) {
 		this.cubes[i] = col;
 	}
 	var val = col[j];
-	var color = state == ALIVE ? 0x00a000 : 0x0200020;
+	var color = state == ALIVE ? 0xaaaaaa : 0x0200020;
 
 	if(val == null) {
 		var geometry = new THREE.CubeGeometry( this.SIDE, this.SIDE, this.SIDE);
-		var material = new THREE.MeshPhongMaterial({ color: color, specular: 0x00ff00, shininess: 30 });
+		var material = new THREE.MeshPhongMaterial({ color: color, specular: 0xffffff, shininess: 100 });
 		// material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
 		var cube = new THREE.Mesh( geometry, material );
 		cube.position.x = (i - (this.BOARD_SIZE_X / 2)) * (this.SIDE + this.GAP);
@@ -123,6 +221,8 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, doRender) {
 LIFE.ThreeDBoard.prototype.animate = function() {
 	var This = this;
 	function animate() {
+		if(This.terminated)
+			return;
 		requestAnimationFrame( animate );
 		this.render();
 	}
