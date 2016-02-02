@@ -21,6 +21,9 @@
 			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="play()">
 			  <span id="play-button" class="glyphicon glyphicon-play" aria-hidden="true"></span>
 			</button>
+			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="editNavToggle()">
+			  <span id="edit-nav-button" class="glyphicon glyphicon-screenshot" aria-hidden="true"></span>
+			</button>
 		</p>
 		<script src="js/three.min.js"></script>
 		<script src="js/OrbitControls.js"></script>
@@ -29,8 +32,8 @@
 		<script src="ThreeDBoard.js"></script>
 		<script src="BoardModel.js"></script>
 		<script>
-			var BOARD_SIZE_Y = 500;
-			var BOARD_SIZE_X = 500;
+			var BOARD_SIZE_Y = 200;
+			var BOARD_SIZE_X = 200;
 			var board = new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document);
 			var boardModel = new LIFE.BoardModel(BOARD_SIZE_X, BOARD_SIZE_Y, board);
 
@@ -62,6 +65,14 @@
 					playButton.className = 'glyphicon glyphicon-pause';
 				}
 				boardModel.play(window);
+			}
+			function editNavToggle() {
+				var navEditButton = document.getElementById("edit-nav-button");
+				if(board.navEditToggle()) {
+					navEditButton.className = 'glyphicon glyphicon-screenshot';
+				} else {
+					navEditButton.className = 'glyphicon glyphicon-pencil';
+				}
 			}
 		</script>
 	</body>

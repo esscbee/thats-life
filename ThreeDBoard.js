@@ -6,7 +6,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	this.SIDE = .9 ;
 	this.GAP = .1;
 	this.objects = [];
-	this.MUL = 10;
+	this.MUL = 2;
 
 	this.scene = new THREE.Scene();
 	this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
@@ -23,7 +23,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 
 
 	// this.camera.position.y = 1;
-	this.camera.position.z = this.MUL * this.BOARD_SIZE_X * .05;
+	this.camera.position.z = this.MUL * this.BOARD_SIZE_X * .15;
 	var light;
 	if(true) {
 		var ambientLight = new THREE.AmbientLight( 0x606060 );
@@ -101,14 +101,14 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	var This = this;
 
 	var rollOverGeo = new THREE.BoxGeometry( this.SIDE, this.SIDE, this.SIDE);
-	var rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.5, transparent: true } );
+	var rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.5, transparent: true, visible: false } );
 	this.rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
 	this.scene.add( this.rollOverMesh );
 
 	if(true) {
-		var controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
-		controls.damping = 0.2;
-		controls.addEventListener( 'change', function() {
+		this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
+		this.controls.damping = 0.2;
+		this.controls.addEventListener( 'change', function() {
 			This.render();
 		} );
 	}
@@ -143,8 +143,13 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 		// console.dir(pos);
 		var lifeX = Math.floor(pos.x / dx + This.BOARD_SIZE_X / 2);
 		var lifeY = Math.floor(pos.y / dx + This.BOARD_SIZE_Y / 2);
-		if(This.tcb) {
-			This.tcb.setCell(lifeX, lifeY);
+		if(event.metaKey) {
+			var v = new THREE.Vector3(pos.x, pos.y, 0);
+			This.camera.lookAt(v);
+		} else {
+			if(This.tcb && !This.controls.enabled) {
+				This.tcb.setCell(lifeX, lifeY);
+			}
 		}
 
 	}
@@ -227,6 +232,13 @@ LIFE.ThreeDBoard.prototype.animate = function() {
 		this.render();
 	}
 	animate();
+}
+
+LIFE.ThreeDBoard.prototype.navEditToggle = function() {
+	var newState = !this.controls.enabled;
+	this.controls.enabled = newState;
+	this.rollOverMesh.material.visible = !newState;
+	return newState;
 }
 // LIFE.ThreeDBoard.prototype.render = function () {
 // 		// requestAnimationFrame( render );
