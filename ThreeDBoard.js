@@ -136,27 +136,49 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 		}
 		return position;
 	}
-	function mouseClick(event) {
-		var pos = position(event);
+	var lastX, lastY;
+	function setFromPos(pos, state) {
 		var dx = This.SIDE + This.GAP;
 		// console.log('mouseClick - dx: ' + dx);
 		// console.dir(pos);
 		var lifeX = Math.floor(pos.x / dx + This.BOARD_SIZE_X / 2);
 		var lifeY = Math.floor(pos.y / dx + This.BOARD_SIZE_Y / 2);
-		if(event.metaKey) {
-			var v = new THREE.Vector3(pos.x, pos.y, 0);
-			This.camera.lookAt(v);
-		} else {
-			if(This.tcb && !This.controls.enabled) {
+		if(state != undefined || lastX != lifeX || lastY != lifeY) {
+			lastX = lifeX;
+			lastY = lifeY;
+			if(This.tcb && This.isEditing()) {
 				This.tcb.setCell(lifeX, lifeY);
 			}
+
+		}		
+	}
+   window.addEventListener('resize', function() {
+	  var WIDTH = window.innerWidth,
+    	  HEIGHT = window.innerHeight;
+      	This.renderer.setSize(WIDTH, HEIGHT);
+      	This.camera.aspect = WIDTH / HEIGHT;
+      	This.camera.updateProjectionMatrix();
+    });
+ 
+	function mouseClick(event) {
+		var pos = position(event);
+		if(event.metaKey) {
+			var v = new THREE.Vector3(pos.x, pos.y, 0);
+			This.controls.constraint.target.copy( v );
+			This.controls.update();
+		} else {
+			setFromPos(pos, true);			
 		}
 
 	}
+
 	function mouseMove(event) {
 		var pos = position(event);
 		This.rollOverMesh.position.x = pos.x;
 		This.rollOverMesh.position.y = pos.y;
+		if(This.isEditing() && event.buttons != 0) {
+			setFromPos(pos);
+		}
 	}
 
 	function windowClose(event) {
@@ -185,6 +207,12 @@ LIFE.ThreeDBoard.prototype.render = function() {
 //
 LIFE.ThreeDBoard.prototype.addToggleCallback = function(tcb) {
 	this.tcb = tcb;
+}
+LIFE.ThreeDBoard.prototype.isEditing = function() {
+	if(this.controls) {
+		return !this.controls.enabled;
+	}
+	return true;
 }
 LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, doRender) {
 	var col = this.cubes[i];
@@ -234,11 +262,20 @@ LIFE.ThreeDBoard.prototype.animate = function() {
 	animate();
 }
 
-LIFE.ThreeDBoard.prototype.navEditToggle = function() {
+/*
+	pass setting, else it toggles.  returns new state
+*/
+LIFE.ThreeDBoard.prototype.navEditToggle = function(setting) {
 	var newState = !this.controls.enabled;
+	if(setting != undefined)
+		newState = setting;
 	this.controls.enabled = newState;
 	this.rollOverMesh.material.visible = !newState;
+	this.renderer.domElement.style.cursor = newState ? 'move' : 'none';
 	return newState;
+}
+LIFE.ThreeDBoard.prototype.isNav = function(setting) {
+	return this.controls.enabled;
 }
 // LIFE.ThreeDBoard.prototype.render = function () {
 // 		// requestAnimationFrame( render );

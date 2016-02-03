@@ -56,19 +56,24 @@
 				boardModel.setCell(j, theI, ALIVE, false);
 			}
 			board.animate();
+			play(false);
 
-			function play() {
+			function play(state) {
 				var playButton = document.getElementById("play-button");
-				if(boardModel.playing) {
+				var newState = !boardModel.playing;
+				if(state != undefined)
+					newState = state;
+				boardModel.play(window, newState);
+				if(!newState) {
 					playButton.className = 'glyphicon glyphicon-play';
 				} else {
 					playButton.className = 'glyphicon glyphicon-pause';
 				}
-				boardModel.play(window);
+				editNavToggle(board.playing); // set editing mode
 			}
-			function editNavToggle() {
+			function editNavToggle(setting) {
 				var navEditButton = document.getElementById("edit-nav-button");
-				if(board.navEditToggle()) {
+				if(!board.navEditToggle(setting)) {
 					navEditButton.className = 'glyphicon glyphicon-screenshot';
 				} else {
 					navEditButton.className = 'glyphicon glyphicon-pencil';

@@ -202,8 +202,13 @@ LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
 	// console.dir(this.liveNeighborList);
 }
 
-LIFE.BoardModel.prototype.play = function(window) {
-	if(this.playing == undefined) {
+LIFE.BoardModel.prototype.play = function(window, state) {
+	var newState = state;
+	if(newState == undefined) {
+		if(this.playing == undefined)
+			newState = true;
+	}
+	if(newState != undefined && newState) {
 		this.playing = true;
 		var This = this;
 		function play() {
@@ -216,6 +221,7 @@ LIFE.BoardModel.prototype.play = function(window) {
 	} else {
 		this.playing = undefined;
 	}
+	return this.playing;
 }
 
 LIFE.BoardModel.prototype.liveNeighbors = function(i, j) {
