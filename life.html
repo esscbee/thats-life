@@ -24,6 +24,12 @@
 			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="editNavToggle()">
 			  <span id="edit-nav-button" class="glyphicon glyphicon-screenshot" aria-hidden="true"></span>
 			</button>
+			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="resetBoardModel(true)">
+			  <span id="edit-nav-button" class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+			</button>
+			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="resetBoardModel(false)">
+			  <span id="edit-nav-button" class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+			</button>
 		</p>
 		<script src="js/three.min.js"></script>
 		<script src="js/OrbitControls.js"></script>
@@ -34,14 +40,40 @@
 		<script>
 			var BOARD_SIZE_Y = 200;
 			var BOARD_SIZE_X = 200;
-			var board = new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document);
-			var boardModel = new LIFE.BoardModel(BOARD_SIZE_X, BOARD_SIZE_Y, board);
+			var board;
+			var boardModel;
 
 			var render = function() {
-				board.render();
+				if(board && boardModel)
+					board.render();
 				// console.log('render!');
 			}
 
+			function resetBoardModel(reinit) {
+				if(board) {
+					var d = board;
+					board = undefined;
+					d.dispose();
+				}
+				if(boardModel) {
+					var d = boardModel;
+					boardModel = undefined;
+					d.dispose();
+				}
+				if(reinit) {
+					board = new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document);
+					boardModel = new LIFE.BoardModel(BOARD_SIZE_X, BOARD_SIZE_Y, board);
+					play(false);
+					board.animate();
+				}
+			}
+			resetBoardModel(true);
+			var dj = Math.floor(BOARD_SIZE_X / 5);
+			var startJ = Math.floor((BOARD_SIZE_X - dj) / 2);
+			var theI = Math.floor(BOARD_SIZE_Y / 2);
+			for(var j = startJ; j < (startJ + dj); j++) {
+				boardModel.setCell(j, theI, ALIVE, false);
+			}
 
 			// window.onresize = function(event) {
 			// 	//camera.aspect = window.innerWidth / window.innerHeight;
@@ -49,16 +81,10 @@
 			// 	renderer.setSize( window.innerWidth, window.innerHeight );
 			// 	console.log('resize: ' + window.innerWidth + ', ' + window.innerHeight);
 			// }
-			var dj = Math.floor(BOARD_SIZE_X / 5);
-			var startJ = Math.floor((BOARD_SIZE_X - dj) / 2);
-			var theI = Math.floor(BOARD_SIZE_Y / 2);
-			for(var j = startJ; j < (startJ + dj); j++) {
-				boardModel.setCell(j, theI, ALIVE, false);
-			}
-			board.animate();
-			play(false);
 
 			function play(state) {
+				if(!board || !boardModel)
+					return;
 				var playButton = document.getElementById("play-button");
 				var newState = !boardModel.playing;
 				if(state != undefined)
@@ -72,6 +98,8 @@
 				editNavToggle(board.playing); // set editing mode
 			}
 			function editNavToggle(setting) {
+				if(!board)
+					return;
 				var navEditButton = document.getElementById("edit-nav-button");
 				if(!board.navEditToggle(setting)) {
 					navEditButton.className = 'glyphicon glyphicon-screenshot';

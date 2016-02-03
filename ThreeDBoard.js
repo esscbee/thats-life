@@ -1,5 +1,7 @@
 var DEAD_COLOR = 0x1f1f1f;
 var ALIVE_COLOR = 0x00a000;
+var This;
+
 LIFE.ThreeDBoard = function(width, height, window, document) {
 	this.BOARD_SIZE_X = width;
 	this.BOARD_SIZE_Y = height;
@@ -14,7 +16,12 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	this.renderer = new THREE.WebGLRenderer();
 	this.window = window;
 	this.renderer.setSize( window.innerWidth, window.innerHeight );
-	var canvasElement = document.body.appendChild( this.renderer.domElement );
+	this.canvasElement = document.body.appendChild( this.renderer.domElement );
+
+	this.canvasElement.onclick = mouseClick;
+	this.canvasElement.onmousemove = mouseMove;
+
+
 
 	// var cube = new THREE.Mesh( geometry, material );
 	// scene.add( cube );
@@ -98,108 +105,150 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	this.raycaster = new THREE.Raycaster();
 	this.mouse = new THREE.Vector2();
 
-	var This = this;
 
 	var rollOverGeo = new THREE.BoxGeometry( this.SIDE, this.SIDE, this.SIDE);
 	var rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.5, transparent: true, visible: false } );
 	this.rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
 	this.scene.add( this.rollOverMesh );
 
+	This = this;
 	if(true) {
 		this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
 		this.controls.damping = 0.2;
 		this.controls.addEventListener( 'change', function() {
-			This.render();
+			if(This)
+				This.render();
 		} );
 	}
 
-	function position(event) {
-		var position = {};
-		This.mouse.set( ( event.offsetX / window.innerWidth ) * 2 - 1, - ( event.offsetY / window.innerHeight ) * 2 + 1 );
-
-		This.raycaster.setFromCamera( This.mouse, This.camera );
-
-		var intersects = This.raycaster.intersectObjects( This.objects );
-
-		if ( intersects.length > 0 ) {
-
-			var dx = This.SIDE + This.GAP;
-			var dx2 = dx / 2;
-			var intersect = intersects[ 0 ];
-			if(false) {
-				This.rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
-				This.rollOverMesh.position.divideScalar( dx ).floor().multiplyScalar( dx ).addScalar( dx );
-			} else {
-				position.x = Math.floor((intersect.point.x + dx2) / dx) * dx;
-				position.y = Math.floor((intersect.point.y + dx2) / dx) * dx;
-			}
-		}
-		return position;
-	}
-	var lastX, lastY;
-	function setFromPos(pos, state) {
-		var dx = This.SIDE + This.GAP;
-		// console.log('mouseClick - dx: ' + dx);
-		// console.dir(pos);
-		var lifeX = Math.floor(pos.x / dx + This.BOARD_SIZE_X / 2);
-		var lifeY = Math.floor(pos.y / dx + This.BOARD_SIZE_Y / 2);
-		if(state != undefined || lastX != lifeX || lastY != lifeY) {
-			lastX = lifeX;
-			lastY = lifeY;
-			if(This.tcb && This.isEditing()) {
-				This.tcb.setCell(lifeX, lifeY);
-			}
-
-		}		
-	}
    window.addEventListener('resize', function() {
 	  var WIDTH = window.innerWidth,
     	  HEIGHT = window.innerHeight;
-      	This.renderer.setSize(WIDTH, HEIGHT);
-      	This.camera.aspect = WIDTH / HEIGHT;
-      	This.camera.updateProjectionMatrix();
+    	  if(This && This.renderer) {
+      		This.renderer.setSize(WIDTH, HEIGHT);
+	      	This.camera.aspect = WIDTH / HEIGHT;
+	      	This.camera.updateProjectionMatrix();
+	      }
     });
  
-	function mouseClick(event) {
-		var pos = position(event);
-		if(event.metaKey) {
-			var v = new THREE.Vector3(pos.x, pos.y, 0);
-			This.controls.constraint.target.copy( v );
-			This.controls.update();
-		} else {
-			setFromPos(pos, true);			
-		}
 
-	}
-
-	function mouseMove(event) {
-		var pos = position(event);
-		This.rollOverMesh.position.x = pos.x;
-		This.rollOverMesh.position.y = pos.y;
-		if(This.isEditing() && event.buttons != 0) {
-			setFromPos(pos);
-		}
-	}
-
-	function windowClose(event) {
-		This.terminated = true;
-		This.cubes = null;
-		This.tcb.term();
-	}
-	canvasElement.onclick = mouseClick;
-	canvasElement.onmousemove = mouseMove;
 	window.onbeforeunload = windowClose;
 }
 
 LIFE.ThreeDBoard.prototype = Object.create(Object.prototype);
 LIFE.ThreeDBoard.prototype.constructor = LIFE.ThreeDBoard;
+LIFE.ThreeDBoard.prototype.dispose = function() {
+	This = undefined;
+	var locRenderer = this.renderer;
+	this.renderer = undefined;
+	this.cubes = undefined;
+	this.terminated = true;
+	this.camera = undefined;
+	this.controls = undefined;
+
+	while(this.scene.children.length != 0) {
+		var thisChild = this.scene.children[this.scene.children.length-1];
+		this.scene.remove(thisChild);
+		// if(thisChild instanceof THREE.Mesh) {
+		// 	locRenderer.deallocateObject(thisChild);
+		// }
+	}
+	locRenderer.dispose();
+	this.scene = undefined;
+	var parent = this.canvasElement.parentElement;
+	parent.removeChild(this.canvasElement);
+	var here = 10;
+}
+function position(event) {
+	var position = {};
+	if(!This)
+		return;
+	This.mouse.set( ( event.offsetX / window.innerWidth ) * 2 - 1, - ( event.offsetY / window.innerHeight ) * 2 + 1 );
+
+	This.raycaster.setFromCamera( This.mouse, This.camera );
+
+	var intersects = This.raycaster.intersectObjects( This.objects );
+
+	if ( intersects.length > 0 ) {
+
+		var dx = This.SIDE + This.GAP;
+		var dx2 = dx / 2;
+		var intersect = intersects[ 0 ];
+		if(false) {
+			This.rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
+			This.rollOverMesh.position.divideScalar( dx ).floor().multiplyScalar( dx ).addScalar( dx );
+		} else {
+			position.x = Math.floor((intersect.point.x + dx2) / dx) * dx;
+			position.y = Math.floor((intersect.point.y + dx2) / dx) * dx;
+		}
+	}
+	return position;
+}
+var lastX, lastY;
+function setFromPos(pos, state) {
+	var dx = This.SIDE + This.GAP;
+	// console.log('mouseClick - dx: ' + dx);
+	// console.dir(pos);
+	var lifeX = Math.floor(pos.x / dx + This.BOARD_SIZE_X / 2);
+	var lifeY = Math.floor(pos.y / dx + This.BOARD_SIZE_Y / 2);
+	// console.log('setFromPos: (' + lifeX + ', ' + lifeY + ') :' + state);
+	if(state != undefined || lastX != lifeX || lastY != lifeY) {
+		lastX = lifeX;
+		lastY = lifeY;
+		if(This.tcb && This.isEditing()) {
+			This.tcb.setCell(lifeX, lifeY, state);
+		}
+
+	}		
+}
+
+function mouseClick(event) {
+	var pos = position(event);
+	if(event.metaKey) {
+		var v = new THREE.Vector3(pos.x, pos.y, 0);
+		This.controls.constraint.target.copy( v );
+		This.controls.update();
+	} else {
+		var val = true;
+		if(event.ctrlKey)
+			val = false;
+		setFromPos(pos, val);			
+	}
+
+}
+
+function mouseMove(event) {
+	var pos = position(event);
+	if(!This)
+		return;
+	This.rollOverMesh.position.x = pos.x;
+	This.rollOverMesh.position.y = pos.y;
+	if(This.isEditing() && event.buttons != 0) {
+		var newState;
+		if(event.shiftKey) {
+			newState = true;
+		}
+		if(event.ctrlKey) {
+			newState = false;
+			// console.log('control key mouse move: ' + newState);
+		}
+		setFromPos(pos, newState);
+	}
+}
+
+function windowClose(event) {
+	if(This)
+		This.dispose();
+}
 
 LIFE.ThreeDBoard.prototype.render = function() {
 	// console.log("render: ");
 	// console.log("  scene: ");
 	// this.globalCube.material.color.setHex(Math.random() * 0xffffff);
 	// console.dir(this.scene);
-	this.renderer.render(this.scene, this.camera);
+	if(this.renderer) {
+		this.renderer.render(this.scene, this.camera);
+	}
 }
 
 //
@@ -215,6 +264,7 @@ LIFE.ThreeDBoard.prototype.isEditing = function() {
 	return true;
 }
 LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, doRender) {
+	// console.log('ThreeDBoard.setCell: (' + i + ', ' + j + ') state: ' + state + ' doRender: ' + doRender );
 	var col = this.cubes[i];
 	if(col == undefined && (state == undefined || state == DEAD))
 		return;
@@ -226,7 +276,7 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, doRender) {
 	var val = col[j];
 	var color = state == ALIVE ? 0xaaaaaa : 0x0200020;
 
-	if(val == null) {
+	if(val == null && state == ALIVE) {
 		var geometry = new THREE.CubeGeometry( this.SIDE, this.SIDE, this.SIDE);
 		var material = new THREE.MeshPhongMaterial({ color: color, specular: 0xffffff, shininess: 100 });
 		// material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
@@ -252,9 +302,8 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, doRender) {
 
 }
 LIFE.ThreeDBoard.prototype.animate = function() {
-	var This = this;
 	function animate() {
-		if(This.terminated)
+		if(!This || This.terminated)
 			return;
 		requestAnimationFrame( animate );
 		this.render();
@@ -275,7 +324,7 @@ LIFE.ThreeDBoard.prototype.navEditToggle = function(setting) {
 	return newState;
 }
 LIFE.ThreeDBoard.prototype.isNav = function(setting) {
-	return this.controls.enabled;
+	return this.controls && this.controls.enabled;
 }
 // LIFE.ThreeDBoard.prototype.render = function () {
 // 		// requestAnimationFrame( render );

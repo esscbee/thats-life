@@ -166,7 +166,7 @@ LIFE.BoardModel.prototype.generate = function() {
 }
 
 LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
-	// console.log('setCell: (' + i + ', ' + j + ') ' + state);
+	// console.log('BoardModel.setCell: (' + i + ', ' + j + ') ' + state);
 	if(isNaN(i) || isNaN(j))
 		return;
 	if(this.generating) {
@@ -174,8 +174,15 @@ LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
 		// console.log('already geenrating');
 		return;
 	}
+	// must be disposing
+	if(!this.cells)
+		return;
 	var col = this.cells[i];
-	if(state == undefined) {
+	if(state === false)
+		state = DEAD;
+	else if(state === true)
+		state = ALIVE;
+	else if(state == undefined) {
 		state = ALIVE;
 		if(col != undefined) {
 			var cell = col[j];
@@ -183,6 +190,9 @@ LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
 				state = DEAD;
 		}
 	}
+	if(state != ALIVE)
+		state = DEAD;
+	// console.log(' resulting state: ' + state);
 	var inc = state == ALIVE ? 1 : -1;
 	if(col) {
 		var val = col[j];
@@ -234,8 +244,8 @@ LIFE.BoardModel.prototype.liveNeighbors = function(i, j) {
 	}
 	return ret;
 }
-LIFE.BoardModel.prototype.term = function() {
-	this.cells = null;
-	this.liveNeighborList = null;
-	this.board = null;
+LIFE.BoardModel.prototype.dispose = function() {
+	this.cells = undefined;
+	this.liveNeighborList = undefined;
+	this.board = undefined;
 }
