@@ -15,7 +15,7 @@
 	</head>
 	<body>
 		<p class="text-center">
-			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="boardModel.generate()">
+			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="boardModel.generate(true)">
 			  <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
 			</button>
 			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="play()">
@@ -30,7 +30,19 @@
 			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="resetBoardModel(false)">
 			  <span id="edit-nav-button" class="glyphicon glyphicon-remove" aria-hidden="true"></span>
 			</button>
+			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="saveBoard()">
+			  <span id="edit-nav-button" class="glyphicon glyphicon-save" aria-hidden="true"></span>
+			</button>
+			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="openBoard()">
+			  <span id="edit-nav-button" class="glyphicon glyphicon-open" aria-hidden="true"></span>
+			</button>
+			<!--
+			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="compressBoard()">
+			  <span id="edit-nav-button" class="glyphicon glyphicon-compressed" aria-hidden="true"></span>
+			</button>
+			-->
 		</p>
+		<p id='status-field' class="text-center">Status</p>
 		<script src="js/three.min.js"></script>
 		<script src="js/OrbitControls.js"></script>
 		<script src="node_modules/three/examples/js/libs/stats.min.js"></script>
@@ -62,9 +74,10 @@
 				}
 				if(reinit) {
 					board = new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document);
-					boardModel = new LIFE.BoardModel(BOARD_SIZE_X, BOARD_SIZE_Y, board);
+					boardModel = new LIFE.BoardModel(BOARD_SIZE_X, BOARD_SIZE_Y, board, updateStatus);
 					play(false);
 					board.animate();
+					boardModel.updateStatus();
 				}
 			}
 			resetBoardModel(true);
@@ -74,6 +87,7 @@
 			for(var j = startJ; j < (startJ + dj); j++) {
 				boardModel.setCell(j, theI, ALIVE, false);
 			}
+			boardModel.updateStatus();
 
 			// window.onresize = function(event) {
 			// 	//camera.aspect = window.innerWidth / window.innerHeight;
@@ -81,7 +95,19 @@
 			// 	renderer.setSize( window.innerWidth, window.innerHeight );
 			// 	console.log('resize: ' + window.innerWidth + ', ' + window.innerHeight);
 			// }
+			function updateStatus(contents, growth) {
+				var color = 'black';
+				if(growth > 0)
+					color = 'green';
+				else if(growth < 0)
+					color = 'red';
 
+				if(contents == undefined)
+					contents = '';
+				var status = document.getElementById('status-field');
+				status.innerHTML = contents;
+				status.style.color = color;
+			}
 			function play(state) {
 				if(!board || !boardModel)
 					return;
@@ -106,6 +132,11 @@
 				} else {
 					navEditButton.className = 'glyphicon glyphicon-pencil';
 				}
+			}
+			function compressBoard() {
+				if(!boardModel)
+					return;
+				boardModel.compressBoard();
 			}
 		</script>
 	</body>
