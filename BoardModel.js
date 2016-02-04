@@ -309,3 +309,18 @@ LIFE.BoardModel.prototype.compressBoard = function() {
 	// this.updateStatus(rowCount + ' rows deleted.');
 	var here = 20;
 }
+LIFE.BoardModel.prototype.getContents = function() {
+	if(this.cells == undefined)
+		return "";
+	var json = {};
+	for(var i in this.cells) {
+		var inCol = this.cells[i];
+		var col = {};
+		for(var j in inCol) {
+			col[j] = inCol[j];
+		}
+		json[i] = col;
+	}
+	return JSON.stringify(json);
+}
+

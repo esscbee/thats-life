@@ -9,7 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "Blob": "^0.10.0",
+    "FileSaver": "^0.10.0",
     "bootstrap": "^3.3.6",
-    "jquery": "^2.2.0"
+    "jquery": "^2.2.0",
+    "nw": "^0.12.3"
   }
 }
