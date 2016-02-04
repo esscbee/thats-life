@@ -15,7 +15,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	var masks = [ 0x00ff00, 0x00ffff, 0xffff00, 0xff0000, 0xff00ff ];
 	for(var m in masks) {
 		var mask = masks[m];
-		for(var ci = 0x55; ci < 0xff; ci += 0x4) {
+		for(var ci = 0x66; ci < 0xff; ci += 0x3) {
 			var c = 0;
 			for(var shiftCount = 0; shiftCount < 4; shiftCount++) {
 				c = c << 8;
@@ -205,14 +205,17 @@ function position(event) {
 	return position;
 }
 var lastX, lastY;
+var lastTime = 0;
 function setFromPos(pos, state) {
 	var dx = This.SIDE + This.GAP;
 	// console.log('mouseClick - dx: ' + dx);
 	// console.dir(pos);
+	var thisTime = new Date().getTime();
 	var lifeX = Math.floor(pos.x / dx + This.BOARD_SIZE_X / 2);
 	var lifeY = Math.floor(pos.y / dx + This.BOARD_SIZE_Y / 2);
 	// console.log('setFromPos: (' + lifeX + ', ' + lifeY + ') :' + state);
-	if(state != undefined || lastX != lifeX || lastY != lifeY) {
+	if(state != undefined || lastX != lifeX || lastY != lifeY || (thisTime - lastTime > 250)) {
+		lastTime = thisTime;
 		lastX = lifeX;
 		lastY = lifeY;
 		if(This.tcb && This.isEditing()) {
@@ -229,10 +232,15 @@ function mouseClick(event) {
 		This.controls.constraint.target.copy( v );
 		This.controls.update();
 	} else {
-		var val = true;
-		if(event.ctrlKey)
-			val = false;
-		setFromPos(pos, val);			
+		var newState;
+		if(event.shiftKey) {
+			newState = true;
+		}
+		if(event.ctrlKey) {
+			newState = false;
+			// console.log('control key mouse move: ' + newState);
+		}
+		setFromPos(pos, newState);			
 	}
 
 }
@@ -318,7 +326,7 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, generation, doRender)
 			val.visible = false;
 		} else {
 			val.visible = true;
-			val.material.col = color;
+			val.material.color.setHex(color);
 		}
 	}
 

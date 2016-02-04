@@ -15,7 +15,7 @@
 	</head>
 	<body>
 		<p class="text-center">
-			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="boardModel.generate(true)">
+			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="doStep()">
 			  <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
 			</button>
 			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="play()">
@@ -122,6 +122,15 @@
 					playButton.className = 'glyphicon glyphicon-pause';
 				}
 				editNavToggle(board.playing); // set editing mode
+			}
+			function doStep() {
+				if(!board || !boardModel)
+					return;
+				if(boardModel.playing) {
+					play(false);
+					return;
+				}
+				boardModel.generate(true);
 			}
 			function editNavToggle(setting) {
 				if(!board)
