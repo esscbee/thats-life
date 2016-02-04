@@ -126,7 +126,7 @@ LIFE.BoardModel.prototype.generate = function(single) {
 					val = DEAD;
 				if(val == ALIVE) {
 					if(liveNeighbors <= 1 || liveNeighbors >= 4) {
-						this.board.setCell(i, j, trailValue, false);
+						this.board.setCell(i, j, trailValue, this.generationCount, false);
 						appendUpdate(neighborUpdate, i, j, -1);
 						val = trailValue;
 						needsRender = true;
@@ -134,7 +134,7 @@ LIFE.BoardModel.prototype.generate = function(single) {
 					}
 				} else {
 					if(liveNeighbors == 3) {
-						this.board.setCell(i, j, ALIVE, false);
+						this.board.setCell(i, j, ALIVE, this.generationCount, false);
 						appendUpdate(neighborUpdate, i, j, 1);
 						val = ALIVE;
 						needsRender = true;
@@ -237,7 +237,7 @@ LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
 		col[j] = state;
 	}
 	this.addNeighbors(i, j, inc);
-	this.board.setCell(i, j, state, render);
+	this.board.setCell(i, j, state, this.generationCount, render);
 	this.liveCellCount += inc;
 	this.updateStatus();
 	// console.log('setCell');

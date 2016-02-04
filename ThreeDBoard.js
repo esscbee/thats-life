@@ -10,6 +10,26 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	this.objects = [];
 	this.MUL = 2;
 
+	this.generationColors = [ ];
+	var idx = 0;
+	var masks = [ 0x00ff00, 0x00ffff, 0xffff00, 0xff0000, 0xff00ff ];
+	for(var m in masks) {
+		var mask = masks[m];
+		for(var ci = 0x55; ci < 0xff; ci += 0x4) {
+			var c = 0;
+			for(var shiftCount = 0; shiftCount < 4; shiftCount++) {
+				c = c << 8;
+				c += ci;
+			}
+			this.generationColors[idx++] = c & mask;
+		}
+	}
+
+	for(var c in this.generationColors) {
+		var color = this.generationColors[c];
+		console.log('0x' + color.toString(16));
+	}
+
 	this.scene = new THREE.Scene();
 	this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
@@ -263,7 +283,7 @@ LIFE.ThreeDBoard.prototype.isEditing = function() {
 	}
 	return true;
 }
-LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, doRender) {
+LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, generation, doRender) {
 	// console.log('ThreeDBoard.setCell: (' + i + ', ' + j + ') state: ' + state + ' doRender: ' + doRender );
 	var col = this.cubes[i];
 	if(col == undefined && (state == undefined || state == DEAD))
@@ -274,11 +294,15 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, doRender) {
 		this.cubes[i] = col;
 	}
 	var val = col[j];
-	var color = state == ALIVE ? 0xaaaaaa : 0x0200020;
+	var colorSize = this.generationColors.length;
+	var color = this.generationColors[ generation % colorSize ];
 
 	if(val == null && state == ALIVE) {
 		var geometry = new THREE.CubeGeometry( this.SIDE, this.SIDE, this.SIDE);
-		var material = new THREE.MeshPhongMaterial({ color: color, specular: 0xffffff, shininess: 100 });
+		var material = new THREE.MeshPhongMaterial({ color: color
+										// , specular: 0xffffff
+										// , shininess: 100 
+									});
 		// material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
 		var cube = new THREE.Mesh( geometry, material );
 		cube.position.x = (i - (this.BOARD_SIZE_X / 2)) * (this.SIDE + this.GAP);
@@ -289,11 +313,12 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, doRender) {
 		this.cubes[i][j] = cube;
 		val = cube;
 	} else {
+		var herer = 10;
 		if(state == DEAD) {
-			this.scene.remove(val);
-			col[j] = null;
+			val.visible = false;
 		} else {
-			val.material.color.setHex(color);
+			val.visible = true;
+			val.material.col = color;
 		}
 	}
 
