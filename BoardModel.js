@@ -233,6 +233,8 @@ LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
 	if(state == DEAD) {
 		if(col[j])
 			delete(col[j]);
+		else
+			return;
 	} else {
 		col[j] = state;
 	}

@@ -15,7 +15,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	var masks = [ 0x00ff00, 0x00ffff, 0xffff00, 0xff0000, 0xff00ff ];
 	for(var m in masks) {
 		var mask = masks[m];
-		for(var ci = 0x66; ci < 0xff; ci += 0x3) {
+		for(var ci = 0x66; ci < 0xff; ci += 0x6) {
 			var c = 0;
 			for(var shiftCount = 0; shiftCount < 4; shiftCount++) {
 				c = c << 8;
@@ -305,23 +305,24 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, generation, doRender)
 	var colorSize = this.generationColors.length;
 	var color = this.generationColors[ generation % colorSize ];
 
-	if(val == null && state == ALIVE) {
-		var geometry = new THREE.CubeGeometry( this.SIDE, this.SIDE, this.SIDE);
-		var material = new THREE.MeshPhongMaterial({ color: color
-										// , specular: 0xffffff
-										// , shininess: 100 
-									});
-		// material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
-		var cube = new THREE.Mesh( geometry, material );
-		cube.position.x = (i - (this.BOARD_SIZE_X / 2)) * (this.SIDE + this.GAP);
-		cube.position.y = (j - (this.BOARD_SIZE_Y / 2)) * (this.SIDE + this.GAP);
-		cube.lifeX = i;
-		cube.lifeY = j;
-		this.scene.add(cube);
-		this.cubes[i][j] = cube;
-		val = cube;
+	if(val == null) {
+		if(state == ALIVE) {
+			var geometry = new THREE.CubeGeometry( this.SIDE, this.SIDE, this.SIDE);
+			var material = new THREE.MeshPhongMaterial({ color: color
+											// , specular: 0xffffff
+											// , shininess: 100 
+										});
+			// material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+			var cube = new THREE.Mesh( geometry, material );
+			cube.position.x = (i - (this.BOARD_SIZE_X / 2)) * (this.SIDE + this.GAP);
+			cube.position.y = (j - (this.BOARD_SIZE_Y / 2)) * (this.SIDE + this.GAP);
+			cube.lifeX = i;
+			cube.lifeY = j;
+			this.scene.add(cube);
+			this.cubes[i][j] = cube;
+			val = cube;
+		}
 	} else {
-		var herer = 10;
 		if(state == DEAD) {
 			val.visible = false;
 		} else {
