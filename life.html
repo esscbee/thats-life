@@ -24,10 +24,15 @@
 			<button type="button" title="Reset Board" class="btn btn-default" aria-label="Left Align" onclick="resetBoardModel(true)">
 			  <span id="clear-button" class="glyphicon glyphicon-trash" aria-hidden="true"></span>
 			</button>
+			<!--
+			<button type="button" class="btn btn-default" title="Compress Memory" aria-label="Left Align" onclick="compressBoard()">
+                <span id="compress-button" class="glyphicon glyphicon-compressed" aria-hidden="true"></span>
+            </button>
+            -->
 			<button type="button" title="Help" class="btn btn-default" aria-label="Left Align" onclick="displayHelp()">
 			  <span id="help-button" class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
 			</button>
-		</p>
+   		</p>
 		<p id='status-field' class="text-center">Status</p>
 		<script src="js/three.min.js"></script>
 		<script src="js/jquery.min.js"></script>
@@ -65,6 +70,7 @@
 					play(false);
 					board.animate();
 					boardModel.updateStatus();
+					board.ready();
 				}
 			}
 			resetBoardModel(true);
@@ -160,9 +166,9 @@
 			// 	}
 			// }
 			function compressBoard() {
-				if(!boardModel)
-					return;
-				boardModel.compressBoard();
+				if(!boardModel) {
+					boardModel.compressBoard();
+				}
 			}
 		</script>
 	</body>

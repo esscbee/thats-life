@@ -296,6 +296,5 @@ LIFE.BoardModel.prototype.compressBoard = function() {
 			rowCount++;
 		}
 	}
-	// this.updateStatus(rowCount + ' rows deleted.');
-	var here = 20;
+	this.board.compressBoard();
 }

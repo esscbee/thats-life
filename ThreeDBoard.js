@@ -288,8 +288,8 @@ function mouseMove(event) {
 			// console.log('control key mouse move: ' + newState);
 		}
 		if(true) { // /mx < -1 || mx > 1 || my < -1 || my > 1) {
-			console.log('skipping: (' + mx + ', ' + my + ')');
-			console.log('  position: (' + pos.x + ', ' + pos.y + ')');
+			// console.log('skipping: (' + mx + ', ' + my + ')');
+			// console.log('  position: (' + pos.x + ', ' + pos.y + ')');
 			var fromPos = deltaPosition(event);
 			mx = fromPos.x - pos.x;
 			my = fromPos.y - pos.y;
@@ -508,4 +508,21 @@ LIFE.ThreeDBoard.prototype.isNav = function(setting) {
 
 LIFE.ThreeDBoard.prototype.ready = function() {
 	this.processKeyEvent();
+}
+LIFE.ThreeDBoard.prototype.compressBoard = function() {
+	for(var i in this.cubes) {
+		var col = this.cubes[i];
+		var anyLive = false;
+		for(var j in col) {
+			var thisCube = col[j];
+			if(!thisCube.visible) {
+				this.scene.remove(thisCube);
+				delete col[j];
+			} else {
+				anyLive = true;
+			}
+		}
+		if(!anyLive)
+			delete this.cubes[i];
+	}
 }
