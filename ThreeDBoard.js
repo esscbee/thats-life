@@ -395,7 +395,7 @@ LIFE.ThreeDBoard.prototype.setErase = function(turnOn) {
 LIFE.ThreeDBoard.prototype.processKeyEvent = function(event, turnOn) {
 	var color = 0xffff00;
 	if(event) {
-		console.log(event.type + ': ' + event.keyCode);
+		// console.log(event.type + ': ' + event.keyCode);
 		switch(event.keyCode) {
 			case 17:
 				this.erase = turnOn;
@@ -403,7 +403,7 @@ LIFE.ThreeDBoard.prototype.processKeyEvent = function(event, turnOn) {
 			case 16:
 				this.write = turnOn;
 				break;
-			case 91:
+			case 18:
 				if(turnOn) {
 					this.write = false;
 					this.erase = false;

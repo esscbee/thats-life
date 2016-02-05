@@ -254,6 +254,7 @@ LIFE.BoardModel.prototype.play = function(window, state) {
 		this.playing = undefined;
 		this.compressBoard();
 	}
+	this.fnStatus('play', undefined, this.playing);
 	return this.playing;
 }
 

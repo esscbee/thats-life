@@ -102,7 +102,14 @@
 			function displayHelp() {
 				alert('help');
 			}
-			function updateStatus(contents, growth) {
+			function updateStatus(contents, growth, turnOn) {
+				if(growth == undefined) {
+					// here have setting to toggle - bit of a hack
+					if(contents == 'play') {
+						setPlayButtonState(turnOn);
+						return;
+					}
+				}
 				var color = 'black';
 				if(growth > 0)
 					color = 'green';
@@ -115,19 +122,23 @@
 				status.innerHTML = contents;
 				status.style.color = color;
 			}
-			function play(state) {
-				if(!board || !boardModel)
-					return;
+			function setPlayButtonState(isPlay) {
 				var playButton = document.getElementById("play-button");
-				var newState = !boardModel.playing;
-				if(state != undefined)
-					newState = state;
-				boardModel.play(window, newState);
-				if(!newState) {
+				if(!isPlay) {
 					playButton.className = 'glyphicon glyphicon-play';
 				} else {
 					playButton.className = 'glyphicon glyphicon-pause';
 				}
+
+			}
+			function play(state) {
+				if(!board || !boardModel)
+					return;
+				var newState = !boardModel.playing;
+				if(state != undefined)
+					newState = state;
+				boardModel.play(window, newState);
+				setPlayButtonState(newState);
 			}
 			function doStep() {
 				if(!board || !boardModel)
