@@ -62,7 +62,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	}
 
 	if(true) {
-		var geometry = new THREE.PlaneBufferGeometry( (this.MUL * width) * (this.SIDE + this.GAP), (this.MUL * height) * (this.SIDE + this.GAP) );
+		var geometry = new THREE.PlaneBufferGeometry( (10 * this.MUL * width) * (this.SIDE + this.GAP), (10 * this.MUL * height) * (this.SIDE + this.GAP) );
 		geometry.rotateX( - Math.PI / 2 );
 
 		var plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false, opacity: 0, transparent: true } ) );
