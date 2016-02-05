@@ -146,6 +146,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	}
 
 
+
    window.addEventListener('resize', function() {
 	  var WIDTH = window.innerWidth,
     	  HEIGHT = window.innerHeight;
@@ -233,9 +234,9 @@ function setFromPos(pos, state) {
 function mouseClick(event) {
 	var pos = position(event);
 	if(event.metaKey) {
-		var v = new THREE.Vector3(pos.x, pos.y, 0);
-		This.controls.constraint.target.copy( v );
-		This.controls.update();
+		// var v = new THREE.Vector3(pos.x, pos.y, 0);
+		// This.controls.constraint.target.copy( v );
+		// This.controls.update();
 	} else {
 		var newState;
 		if(event.shiftKey) {
@@ -254,6 +255,15 @@ function mouseMove(event) {
 	var pos = position(event);
 	if(!This)
 		return;
+
+	if(!This.isEditing()) {
+		if(event.buttons == 0) {
+			// console.log('move: (' + event.movementX + ', ' + event.movementY + ')');
+			This.camera.position.x -= event.movementX / 8;
+			This.camera.position.y += event.movementY / 8;
+		}
+		return;
+	}
 	This.rollOverMesh.position.x = pos.x;
 	This.rollOverMesh.position.y = pos.y;
 	if(This.isEditing() && event.buttons != 0) {
@@ -383,34 +393,51 @@ LIFE.ThreeDBoard.prototype.setErase = function(turnOn) {
 	}
 }
 LIFE.ThreeDBoard.prototype.processKeyEvent = function(event, turnOn) {
-	console.log(event.type + ': ' + event.keyCode);
 	var color = 0xffff00;
-	switch(event.keyCode) {
-		case 17:
-			this.erase = turnOn;
-			break;
-		case 16:
-			this.write = turnOn;
-			break;
-		case 91:
-			if(turnOn) {
-				this.write = false;
-				this.erase = false;
-				this.setControls(true);
-				color = 0;
-			} else
-				this.setControls(false);
-			break;
-		case 9:
-			event.preventDefault();
-			if(turnOn)
-				this.tcb.generate(true);
-			break;
-		case 32:
-			event.preventDefault();
-			if(turnOn)
-				this.tcb.play(this.window);
-			break;
+	if(event) {
+		console.log(event.type + ': ' + event.keyCode);
+		switch(event.keyCode) {
+			case 17:
+				this.erase = turnOn;
+				break;
+			case 16:
+				this.write = turnOn;
+				break;
+			case 91:
+				if(turnOn) {
+					this.write = false;
+					this.erase = false;
+					this.setControls(true);
+					color = 0;
+				} else
+					this.setControls(false);
+				break;
+			case 9:
+				event.preventDefault();
+				if(turnOn)
+					this.tcb.generate(true);
+				break;
+			case 32:
+				event.preventDefault();
+				if(turnOn)
+					this.tcb.play(this.window);
+				break;
+			// case 93:
+			// 	event.preventDefault();
+			// 	if(false) {
+			// 		if(turnOn)
+			// 			this.tcb.play(this.window);
+			// 	} else {
+			// 		if(true) {
+			// 			this.sliding = turnOn;
+			// 			if(turnOn)
+			// 				color = 0;
+			// 		}
+			// 	}
+			// 	break;
+		}
+	} else {
+		this.setControls(false);
 	}
 	if(!turnOn) {
 		var here = 'hello';
@@ -445,3 +472,6 @@ LIFE.ThreeDBoard.prototype.isNav = function(setting) {
 // 		renderer.render(scene, camera);
 // 	};
 
+LIFE.ThreeDBoard.prototype.ready = function() {
+	this.processKeyEvent();
+}

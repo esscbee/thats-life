@@ -22,10 +22,10 @@
 			  <span id="play-button" class="glyphicon glyphicon-play" aria-hidden="true"></span>
 			</button>
 			<button type="button" title="Reset Board" class="btn btn-default" aria-label="Left Align" onclick="resetBoardModel(true)">
-			  <span id="edit-nav-button" class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+			  <span id="clear-button" class="glyphicon glyphicon-trash" aria-hidden="true"></span>
 			</button>
 			<button type="button" title="Help" class="btn btn-default" aria-label="Left Align" onclick="displayHelp()">
-			  <span id="edit-nav-button" class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+			  <span id="help-button" class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
 			</button>
 		</p>
 		<p id='status-field' class="text-center">Status</p>
@@ -87,6 +87,11 @@
 			$(window).keyup(function(event){
 				processKeyEvent(event, false);
 			});
+			$( document ).ready(function() {
+			    if(board) {
+			    	board.ready();
+			    }
+			});
 
 // window.onresize = function(event) {
 			// 	//camera.aspect = window.innerWidth / window.innerHeight;
@@ -123,7 +128,6 @@
 				} else {
 					playButton.className = 'glyphicon glyphicon-pause';
 				}
-				editNavToggle(board.playing); // set editing mode
 			}
 			function doStep() {
 				if(!board || !boardModel)
@@ -134,16 +138,16 @@
 				}
 				boardModel.generate(true);
 			}
-			function editNavToggle(setting) {
-				if(!board)
-					return;
-				var navEditButton = document.getElementById("edit-nav-button");
-				if(!board.navEditToggle(setting)) {
-					navEditButton.className = 'glyphicon glyphicon-screenshot';
-				} else {
-					navEditButton.className = 'glyphicon glyphicon-pencil';
-				}
-			}
+			// function editNavToggle(setting) {
+			// 	if(!board)
+			// 		return;
+			// 	var navEditButton = document.getElementById("edit-nav-button");
+			// 	if(!board.navEditToggle(setting)) {
+			// 		navEditButton.className = 'glyphicon glyphicon-screenshot';
+			// 	} else {
+			// 		navEditButton.className = 'glyphicon glyphicon-pencil';
+			// 	}
+			// }
 			function compressBoard() {
 				if(!boardModel)
 					return;
