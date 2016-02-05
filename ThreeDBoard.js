@@ -9,6 +9,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	this.GAP = .1;
 	this.objects = [];
 	this.MUL = 2;
+	this.DX = (this.SIDE + this.GAP);
 
 	this.write = false;
 	this.toggle = true;
@@ -186,12 +187,21 @@ LIFE.ThreeDBoard.prototype.dispose = function() {
 	var here = 10;
 }
 function position(event) {
+	return generalPosition(event.offsetX, event.offsetY, This.mouse);
+}
+function deltaPosition(event) {
+	var thisMouse = new THREE.Vector2();
+	var x = event.offsetX + event.movementX;
+	var y = event.offsetY + event.movementY;
+	return generalPosition(x, y, thisMouse);
+}
+function generalPosition(ex, ey, mouse) {
 	var position = {};
 	if(!This)
 		return;
-	This.mouse.set( ( event.offsetX / window.innerWidth ) * 2 - 1, - ( event.offsetY / window.innerHeight ) * 2 + 1 );
+	mouse.set( ( ex / window.innerWidth ) * 2 - 1, - ( ey / window.innerHeight ) * 2 + 1 );
 
-	This.raycaster.setFromCamera( This.mouse, This.camera );
+	This.raycaster.setFromCamera( mouse, This.camera );
 
 	var intersects = This.raycaster.intersectObjects( This.objects );
 
@@ -225,7 +235,7 @@ function setFromPos(pos, state) {
 		lastX = lifeX;
 		lastY = lifeY;
 		if(This.tcb && This.isEditing()) {
-			This.tcb.setCell(lifeX, lifeY, state);
+			This.tcb.setCell(lifeX, lifeY, state, false);
 		}
 
 	}		
@@ -252,15 +262,17 @@ function mouseClick(event) {
 }
 
 function mouseMove(event) {
-	var pos = position(event);
 	if(!This)
 		return;
 
+	var pos = position(event);
+	var mx = event.movementX;
+	var my = event.movementY;
 	if(!This.isEditing()) {
 		if(event.buttons == 0) {
 			// console.log('move: (' + event.movementX + ', ' + event.movementY + ')');
-			This.camera.position.x -= event.movementX / 8;
-			This.camera.position.y += event.movementY / 8;
+			This.camera.position.x -= mx / 8;
+			This.camera.position.y += my / 8;
 		}
 		return;
 	}
@@ -275,7 +287,29 @@ function mouseMove(event) {
 			newState = false;
 			// console.log('control key mouse move: ' + newState);
 		}
-		setFromPos(pos, newState);
+		if(true) { // /mx < -1 || mx > 1 || my < -1 || my > 1) {
+			console.log('skipping: (' + mx + ', ' + my + ')');
+			console.log('  position: (' + pos.x + ', ' + pos.y + ')');
+			var fromPos = deltaPosition(event);
+			mx = fromPos.x - pos.x;
+			my = fromPos.y - pos.y;
+			var amx = Math.abs(mx);
+			var amy = Math.abs(my);
+			var count = amx > amy ? amx : amy;
+			var ourx = pos.x;
+			var oury = pos.y;
+			var dmx = mx / count;
+			var dmy = my / count;
+
+			for(var cc = 0; cc < count; cc++) {
+				var ourPos = { x: Math.ceil(ourx), y: Math.ceil(oury) }
+				setFromPos(ourPos, newState);
+				ourx -= dmx;
+				oury -= dmy;
+			}
+
+		} else
+			setFromPos(pos, newState);
 	}
 }
 
