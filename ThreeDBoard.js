@@ -10,6 +10,10 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	this.objects = [];
 	this.MUL = 2;
 
+	this.write = false;
+	this.toggle = true;
+	this.erase = false;
+
 	this.generationColors = [ ];
 	var idx = 0;
 	var masks = [ 0x00ff00, 0x00ffff, 0xffff00, 0xff0000, 0xff00ff ];
@@ -117,7 +121,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 
 	if(false) {
 		var geometry = new THREE.CubeGeometry( this.SIDE, this.SIDE, this.SIDE);
-		var material = new THREE.MeshPhongMaterial({ color: 0xff0000, specular: 0x00ff00, shininess: 30 });
+		var material = new THREE.MeshPhongMaterial({ color: 0xaaaa00, specular: 0x00ff00, shininess: 30 });
 		// material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
 		this.globalCube = new THREE.Mesh( geometry, material );
 		this.scene.add(this.globalCube);
@@ -127,7 +131,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 
 
 	var rollOverGeo = new THREE.BoxGeometry( this.SIDE, this.SIDE, this.SIDE);
-	var rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.5, transparent: true, visible: false } );
+	var rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xffff00, opacity: 0.7, transparent: true, visible: false } );
 	this.rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
 	this.scene.add( this.rollOverMesh );
 
@@ -140,6 +144,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 				This.render();
 		} );
 	}
+
 
    window.addEventListener('resize', function() {
 	  var WIDTH = window.innerWidth,
@@ -357,6 +362,71 @@ LIFE.ThreeDBoard.prototype.navEditToggle = function(setting) {
 	this.renderer.domElement.style.cursor = newState ? 'move' : 'none';
 	return newState;
 }
+LIFE.ThreeDBoard.prototype.setControls = function(turnOn) {
+	this.controls.enabled = turnOn;
+	this.rollOverMesh.material.visible = !turnOn;
+	this.renderer.domElement.style.cursor = turnOn ? 'move' : 'none';
+}
+LIFE.ThreeDBoard.prototype.setWrite = function(turnOn) {
+	if(!turnOn) {
+		var here = 20;
+	}
+	this.setControls(!turnOn);
+	if(turnOn) {
+		this.rollOverMesh.material.color.setHex(0x00ff00);
+	}
+}
+LIFE.ThreeDBoard.prototype.setErase = function(turnOn) {
+	this.setControls(!turnOn);
+	if(turnOn) {
+		this.rollOverMesh.material.color.setHex(0xff0000);
+	}
+}
+LIFE.ThreeDBoard.prototype.processKeyEvent = function(event, turnOn) {
+	console.log(event.type + ': ' + event.keyCode);
+	var color = 0xffff00;
+	event.preventDefault();
+	switch(event.keyCode) {
+		case 17:
+			this.erase = turnOn;
+			break;
+		case 16:
+			this.write = turnOn;
+			break;
+		case 91:
+			if(turnOn) {
+				this.write = false;
+				this.erase = false;
+				this.setControls(true);
+				color = 0;
+			} else
+				this.setControls(false);
+			break;
+		case 9:
+			if(turnOn)
+				this.tcb.generate(true);
+			break;
+		case 32:
+			if(turnOn)
+				this.tcb.play(this.window);
+			break;
+	}
+	if(!turnOn) {
+		var here = 'hello';
+	}
+	if(this.erase)
+		color = 0xff0000;
+	if(this.write)
+		color = 0x00ff00;
+	if(color != 0) {
+		this.rollOverMesh.material.visible = true;
+		this.rollOverMesh.material.color.setHex(color);
+	} else {
+		this.rollOverMesh.material.visible = false;
+	}
+
+}
+
 LIFE.ThreeDBoard.prototype.isNav = function(setting) {
 	return this.controls && this.controls.enabled;
 }

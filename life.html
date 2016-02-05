@@ -15,22 +15,22 @@
 	</head>
 	<body>
 		<p class="text-center">
-			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="doStep()">
+			<button type="button" title="Step" class="btn btn-default" aria-label="Left Align" onclick="doStep()">
 			  <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
 			</button>
-			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="play()">
+			<button type="button" title="Run/Pause" class="btn btn-default" aria-label="Left Align" onclick="play()">
 			  <span id="play-button" class="glyphicon glyphicon-play" aria-hidden="true"></span>
 			</button>
-			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="editNavToggle()">
+			<button type="button" title="Edit/Move Camera" class="btn btn-default" aria-label="Left Align" onclick="editNavToggle()">
 			  <span id="edit-nav-button" class="glyphicon glyphicon-screenshot" aria-hidden="true"></span>
 			</button>
-			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="resetBoardModel(true)">
+			<button type="button" title="Reset Board" class="btn btn-default" aria-label="Left Align" onclick="resetBoardModel(true)">
 			  <span id="edit-nav-button" class="glyphicon glyphicon-trash" aria-hidden="true"></span>
 			</button>
+			<!--
 			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="resetBoardModel(false)">
 			  <span id="edit-nav-button" class="glyphicon glyphicon-remove" aria-hidden="true"></span>
 			</button>
-			<!--
 			<button type="button" class="btn btn-default" aria-label="Left Align" onclick="saveBoard()">
 			  <span id="edit-nav-button" class="glyphicon glyphicon-save" aria-hidden="true"></span>
 			</button>
@@ -44,6 +44,7 @@
 		</p>
 		<p id='status-field' class="text-center">Status</p>
 		<script src="js/three.min.js"></script>
+		<script src="js/jquery.min.js"></script>
 		<script src="js/OrbitControls.js"></script>
 		<script src="node_modules/three/examples/js/libs/stats.min.js"></script>
 		<script src="LIFE.js"></script>
@@ -89,7 +90,19 @@
 			}
 			boardModel.updateStatus();
 
-			// window.onresize = function(event) {
+			function processKeyEvent(event, turnOn) {
+				if(board) {
+					board.processKeyEvent(event, turnOn);
+				}
+			}
+			$(window).keydown(function(event){
+				processKeyEvent(event, true);
+			});
+			$(window).keyup(function(event){
+				processKeyEvent(event, false);
+			});
+
+// window.onresize = function(event) {
 			// 	//camera.aspect = window.innerWidth / window.innerHeight;
 			// 	//camera.updateProjectionMatrix();
 			// 	renderer.setSize( window.innerWidth, window.innerHeight );
