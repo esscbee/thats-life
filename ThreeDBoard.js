@@ -385,7 +385,6 @@ LIFE.ThreeDBoard.prototype.setErase = function(turnOn) {
 LIFE.ThreeDBoard.prototype.processKeyEvent = function(event, turnOn) {
 	console.log(event.type + ': ' + event.keyCode);
 	var color = 0xffff00;
-	event.preventDefault();
 	switch(event.keyCode) {
 		case 17:
 			this.erase = turnOn;
@@ -403,10 +402,12 @@ LIFE.ThreeDBoard.prototype.processKeyEvent = function(event, turnOn) {
 				this.setControls(false);
 			break;
 		case 9:
+			event.preventDefault();
 			if(turnOn)
 				this.tcb.generate(true);
 			break;
 		case 32:
+			event.preventDefault();
 			if(turnOn)
 				this.tcb.play(this.window);
 			break;

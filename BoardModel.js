@@ -1,6 +1,5 @@
 LIFE.BoardModel = function(width, height, board, fnStatus) {
 	this.cells = [];
-	this.setCellQ = [];
 	this.liveNeighborList = [];
 	this.width = width;
 	this.height = height;
@@ -167,13 +166,6 @@ LIFE.BoardModel.prototype.generate = function(single) {
 	// console.log('Done generating: ');
 	// console.dir(this.cells);
 	// console.dir(this.liveNeighborList);
-	if(this.setCellQ.length != 0) {
-		for(var n in this.setCellQ) {
-			var o = this.setCellQ[n];
-			this.setCell(o.i, o.j, o.state);
-		}
-		this.setCellQ = [];
-	}
 	if(single)
 		this.compressBoard();
 
@@ -195,11 +187,6 @@ LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
 	// console.log('BoardModel.setCell: (' + i + ', ' + j + ') ' + state);
 	if(isNaN(i) || isNaN(j))
 		return;
-	if(this.generating) {
-		this.setCellQ.push({i: i, j: j, state: state});
-		// console.log('already geenrating');
-		return;
-	}
 	// must be disposing
 	if(!this.cells)
 		return;
