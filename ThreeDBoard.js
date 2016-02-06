@@ -20,13 +20,8 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	var masks = [ 0x00ff00, 0x00ffff, 0xffff00, 0xff0000, 0xff00ff ];
 	for(var m in masks) {
 		var mask = masks[m];
-		for(var ci = 0x66; ci < 0xff; ci += 0x6) {
-			var c = 0;
-			for(var shiftCount = 0; shiftCount < 4; shiftCount++) {
-				c = c << 8;
-				c += ci;
-			}
-			this.generationColors[idx++] = c & mask;
+		for(var ci = 0x222222; ci <= 0xffffff; ci += 0x111111) {
+			this.generationColors[idx++] = ci & mask;
 		}
 	}
 
@@ -55,7 +50,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 
 
 	// this.camera.position.y = 1;
-	this.camera.position.z = this.MUL * this.BOARD_SIZE_X * .15;
+	this.camera.position.z = this.MUL * this.BOARD_SIZE_X * .3;
 	var light;
 	if(true) {
 		var ambientLight = new THREE.AmbientLight( 0x606060 );
@@ -273,6 +268,10 @@ function mouseMove(event) {
 			// console.log('move: (' + event.movementX + ', ' + event.movementY + ')');
 			This.camera.position.x -= mx / 8;
 			This.camera.position.y += my / 8;
+			var wd = This.camera.getWorldDirection();
+		} else {
+			var la = new THREE.Vector3(pos.x, pos.y, 0);
+			This.camera.lookAt(la);
 		}
 		return;
 	}
@@ -296,13 +295,23 @@ function mouseMove(event) {
 			var amx = Math.abs(mx);
 			var amy = Math.abs(my);
 			var count = amx > amy ? amx : amy;
+			count *= 4;
 			var ourx = pos.x;
 			var oury = pos.y;
 			var dmx = mx / count;
 			var dmy = my / count;
 
 			for(var cc = 0; cc < count; cc++) {
-				var ourPos = { x: Math.ceil(ourx), y: Math.ceil(oury) }
+				var ourPos = { };
+				if(dmx > 0)
+					ourPos.x = Math.floor(ourx);
+				else
+					ourPos.x = Math.ceil(ourx);
+				if(dmy > 0)
+					ourPos.y = Math.floor(oury);
+				else
+					ourPos.y = Math.ceil(oury);
+
 				setFromPos(ourPos, newState);
 				ourx -= dmx;
 				oury -= dmy;

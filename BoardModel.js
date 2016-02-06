@@ -166,7 +166,7 @@ LIFE.BoardModel.prototype.generate = function(single) {
 	// console.log('Done generating: ');
 	// console.dir(this.cells);
 	// console.dir(this.liveNeighborList);
-	if(single)
+	if(single || 0 == (this.generationCount % 50))
 		this.compressBoard();
 
 	// console.log('Generate - render: ' + (endDate.getTime() - endNeighbors.getTime() ));
