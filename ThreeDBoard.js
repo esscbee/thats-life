@@ -10,9 +10,9 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	this.objects = [];
 	this.MUL = 2;
 	this.DX = (this.SIDE + this.GAP);
+	this.playSpeed = 300;
 
-	this.write = false;
-	this.toggle = true;
+	this.write = true;
 	this.erase = false;
 
 	this.generationColors = [ ];
@@ -88,25 +88,27 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 
 	} else {
 
-			var geometry = new THREE.Geometry();
+			if(false) {
+				var geometry = new THREE.Geometry();
 
-			var top = - (Math.floor(this.MUL * this.BOARD_SIZE_Y / 2) + .5) * (this.SIDE + this.GAP);
-			for ( var i = 0; i <= (this.MUL * BOARD_SIZE_X) + 1; i ++ ) {
-				var x = (i - Math.floor(this.MUL * this.BOARD_SIZE_X / 2) - .5) * (this.SIDE + this.GAP);
-				geometry.vertices.push( new THREE.Vector3( x, top, 0 ) );
-				geometry.vertices.push( new THREE.Vector3( x , -top, 0 ) );
+				var top = - (Math.floor(this.MUL * this.BOARD_SIZE_Y / 2) + .5) * (this.SIDE + this.GAP);
+				for ( var i = 0; i <= (this.MUL * BOARD_SIZE_X) + 1; i ++ ) {
+					var x = (i - Math.floor(this.MUL * this.BOARD_SIZE_X / 2) - .5) * (this.SIDE + this.GAP);
+					geometry.vertices.push( new THREE.Vector3( x, top, 0 ) );
+					geometry.vertices.push( new THREE.Vector3( x , -top, 0 ) );
+				}
+				var left = - (Math.floor(this.MUL * this.BOARD_SIZE_X / 2) + .5) * (this.SIDE + this.GAP);
+				for ( var j = 0; j <= (this.MUL * BOARD_SIZE_Y) + 1; j ++ ) {
+					var y = (j - Math.floor(this.MUL * this.BOARD_SIZE_Y / 2) - .5) * (this.SIDE + this.GAP);
+					geometry.vertices.push( new THREE.Vector3( left, y, 0 ) );
+					geometry.vertices.push( new THREE.Vector3( -left , y, 0 ) );
+				}
+
+				var material = new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 0.2, transparent: true } );
+
+				var line = new THREE.LineSegments( geometry, material );
+				this.scene.add( line );
 			}
-			var left = - (Math.floor(this.MUL * this.BOARD_SIZE_X / 2) + .5) * (this.SIDE + this.GAP);
-			for ( var j = 0; j <= (this.MUL * BOARD_SIZE_Y) + 1; j ++ ) {
-				var y = (j - Math.floor(this.MUL * this.BOARD_SIZE_Y / 2) - .5) * (this.SIDE + this.GAP);
-				geometry.vertices.push( new THREE.Vector3( left, y, 0 ) );
-				geometry.vertices.push( new THREE.Vector3( -left , y, 0 ) );
-			}
-
-			var material = new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 0.2, transparent: true } );
-
-			var line = new THREE.LineSegments( geometry, material );
-			this.scene.add( line );
 		}
 
 	if(true) {
@@ -263,6 +265,7 @@ function mouseMove(event) {
 	var pos = position(event);
 	var mx = event.movementX;
 	var my = event.movementY;
+	// lastAnimate = 0;
 	if(!This.isEditing()) {
 		if(event.buttons == 0) {
 			// console.log('move: (' + event.movementX + ', ' + event.movementY + ')');
@@ -279,7 +282,7 @@ function mouseMove(event) {
 	This.rollOverMesh.position.y = pos.y;
 	if(This.isEditing() && event.buttons != 0) {
 		var newState;
-		if(event.shiftKey) {
+		if(!event.shiftKey) {
 			newState = true;
 		}
 		if(event.ctrlKey) {
@@ -393,12 +396,24 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, generation, doRender)
 		this.render();
 
 }
+var lastAnimate = 0;
 LIFE.ThreeDBoard.prototype.animate = function() {
 	function animate() {
 		if(!This || This.terminated)
 			return;
 		requestAnimationFrame( animate );
-		this.render();
+		var dt;
+		if(this.playSpeed < 250)
+			dt = 500;
+		else if(this.playSpeed < 500)
+			dt = 100;
+		else
+			dt = 50;
+		var currentTime = new Date().getTime();
+		if(!This.isPlaying || dt < (currentTime - lastAnimate)) {
+			lastAnimate = currentTime;
+			This.render();
+		}
 	}
 	animate();
 }
@@ -436,15 +451,16 @@ LIFE.ThreeDBoard.prototype.setErase = function(turnOn) {
 	}
 }
 LIFE.ThreeDBoard.prototype.processKeyEvent = function(event, turnOn) {
-	var color = 0xffff00;
+	var color;
 	if(event) {
 		// console.log(event.type + ': ' + event.keyCode);
 		switch(event.keyCode) {
 			case 17:
 				this.erase = turnOn;
+				this.write = !turnOn;
 				break;
 			case 16:
-				this.write = turnOn;
+				this.write = !turnOn && !this.erase;
 				break;
 			case 18:
 				if(turnOn) {
@@ -452,8 +468,10 @@ LIFE.ThreeDBoard.prototype.processKeyEvent = function(event, turnOn) {
 					this.erase = false;
 					this.setControls(true);
 					color = 0;
-				} else
+				} else {
 					this.setControls(false);
+					this.write = true;
+				}
 				break;
 			case 9:
 				event.preventDefault();
@@ -485,10 +503,14 @@ LIFE.ThreeDBoard.prototype.processKeyEvent = function(event, turnOn) {
 	if(!turnOn) {
 		var here = 'hello';
 	}
-	if(this.erase)
-		color = 0xff0000;
-	if(this.write)
-		color = 0x00ff00;
+	if(color == undefined) {
+		if(this.erase)
+			color = 0xff0000;
+		else if(this.write)
+			color = 0x00ff00;
+		else
+			color = 0xffff00;
+	}
 	if(color != 0) {
 		this.rollOverMesh.material.visible = true;
 		this.rollOverMesh.material.color.setHex(color);
@@ -534,4 +556,11 @@ LIFE.ThreeDBoard.prototype.compressBoard = function() {
 		if(!anyLive)
 			delete this.cubes[i];
 	}
+}
+
+LIFE.ThreeDBoard.prototype.playing = function(isPlaying) {
+	this.isPlaying = isPlaying;
+}
+LIFE.ThreeDBoard.prototype.setSpeed = function(newSpeed) {
+	this.playSpeed = newSpeed;
 }

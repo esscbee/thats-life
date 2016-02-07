@@ -7,6 +7,7 @@ LIFE.BoardModel = function(width, height, board, fnStatus) {
 	this.lastLiveCellCount = 0;
 	this.fnStatus = fnStatus;
 	this.generationCount = 0;
+	this.playSpeed = 100;
 
 	// console.log(DEAD);
 
@@ -180,7 +181,7 @@ LIFE.BoardModel.prototype.updateStatus = function(caption) {
 	else
 		caption = caption + '  ';
 	if(this.fnStatus)
-		this.fnStatus(caption + this.liveCellCount + ' living cells at generation ' + this.generationCount, growth);
+		this.fnStatus(caption + this.liveCellCount + ' living cells at generation ' + this.generationCount + ' (sp: ' + this.playSpeed + ')', growth);
 }
 
 LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
@@ -244,9 +245,11 @@ LIFE.BoardModel.prototype.play = function(window, state) {
 		this.playing = true;
 		var This = this;
 		function play() {
+			if(!This)
+				return;
 			if(This.playing != undefined) {
 				This.generate();
-				window.setTimeout(play, 100);
+				window.setTimeout(play, This.playSpeed);
 			}
 		}
 		play();
@@ -255,6 +258,7 @@ LIFE.BoardModel.prototype.play = function(window, state) {
 		this.compressBoard();
 	}
 	this.fnStatus('play', undefined, this.playing);
+	this.board.playing(this.playing);
 	return this.playing;
 }
 
@@ -268,10 +272,10 @@ LIFE.BoardModel.prototype.liveNeighbors = function(i, j) {
 	}
 	return ret;
 }
-LIFE.BoardModel.prototype.dispose = function() {
-	this.cells = undefined;
-	this.liveNeighborList = undefined;
-	this.board = undefined;
+LIFE.BoardModel.prototype.setSpeed = function(newSpeed) {
+	this.playSpeed = newSpeed;
+	this.board.setSpeed(newSpeed);
+	this.updateStatus();
 }
 
 LIFE.BoardModel.prototype.compressBoard = function() {
@@ -297,4 +301,11 @@ LIFE.BoardModel.prototype.compressBoard = function() {
 		}
 	}
 	this.board.compressBoard();
+}
+LIFE.BoardModel.prototype.dispose = function() {
+	var here = 20;
+	delete this.cells;
+	this.board = undefined;
+	delete this.liveNeighborList;
+
 }
