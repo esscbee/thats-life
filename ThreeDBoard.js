@@ -2,7 +2,7 @@ var DEAD_COLOR = 0x1f1f1f;
 var ALIVE_COLOR = 0x00a000;
 var This;
 
-LIFE.ThreeDBoard = function(width, height, window, document) {
+LIFE.ThreeDBoard = function(width, height, window, document, webGL) {
 	this.BOARD_SIZE_X = width;
 	this.BOARD_SIZE_Y = height;
 	this.SIDE = .9 ;
@@ -11,6 +11,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	this.MUL = 2;
 	this.DX = (this.SIDE + this.GAP);
 	this.playSpeed = 300;
+	this.webGL = webGL;
 
 	this.write = true;
 	this.erase = false;
@@ -20,7 +21,7 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	var masks = [ 0x00ff00, 0x00ffff, 0xffff00, 0xff0000, 0xff00ff ];
 	for(var m in masks) {
 		var mask = masks[m];
-		for(var ci = 0x222222; ci <= 0xffffff; ci += 0x111111) {
+		for(var ci = 0x555555; ci <= 0xffffff; ci += 0x111111) {
 			this.generationColors[idx++] = ci & mask;
 		}
 	}
@@ -33,7 +34,11 @@ LIFE.ThreeDBoard = function(width, height, window, document) {
 	this.scene = new THREE.Scene();
 	this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
-	this.renderer = new THREE.WebGLRenderer();
+	if(webGL)
+		this.renderer = new THREE.WebGLRenderer();
+	else
+		this.renderer = new THREE.CanvasRenderer();
+
 	this.window = window;
 	this.renderer.setSize( window.innerWidth, window.innerHeight );
 	this.canvasElement = document.body.appendChild( this.renderer.domElement );
@@ -177,7 +182,10 @@ LIFE.ThreeDBoard.prototype.dispose = function() {
 		// 	locRenderer.deallocateObject(thisChild);
 		// }
 	}
-	locRenderer.dispose();
+	if(locRenderer.dispose)
+		locRenderer.dispose();
+	else if(locRenderer.destroy)
+		locRenderer.destroy();
 	this.scene = undefined;
 	var parent = this.canvasElement.parentElement;
 	parent.removeChild(this.canvasElement);
@@ -564,4 +572,7 @@ LIFE.ThreeDBoard.prototype.playing = function(isPlaying) {
 }
 LIFE.ThreeDBoard.prototype.setSpeed = function(newSpeed) {
 	this.playSpeed = newSpeed;
+}
+LIFE.ThreeDBoard.prototype.isWebGL = function() {
+	return this.webGL;
 }

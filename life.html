@@ -57,6 +57,10 @@
                 <span id="compress-button" class="glyphicon glyphicon-compressed" aria-hidden="true"></span>
             </button>
             -->
+			<span id="render-kind" class="btn-group btn-group-sm" role="group" aria-label="...">
+			  <button id="render-kind-webgl" type="button" class="btn btn-default">WebGL</button>
+			  <button id="render-kind-canvas" type="button" class="btn btn-default active">Canvas</button>
+			</span>
             <span title="Play Speed">
 				<input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="-1000" data-slider-max="-50" data-slider-step="50" data-slider-value="-500"/>
 			</span>
@@ -67,6 +71,8 @@
 		<p id='status-field' class="text-center">Status</p>
 		<input style="display:none;" id="fileDialog" type="file" accept=".life,text/plain;charset=utf-8"/>
 		<script src="js/three.min.js"></script>
+		<script src="js/CanvasRenderer.js"></script>
+		<script src="js/Projector.js"></script>
 		<script src="js/OrbitControls.js"></script>
 		<script src="LIFE.js"></script>
 		<script src="ThreeDBoard.js"></script>
@@ -90,6 +96,14 @@
 					}
 				}
 			});
+			function isWebGL() {
+				var webGL = true;
+				var active = $("#render-kind .active");
+				if(active.length > 0) {
+					webGL = active[0].id == 'render-kind-webgl';
+				}
+				return webGL;
+			}
 			function resetBoardModel(reinit) {
 				if(board) {
 					var d = board;
@@ -102,16 +116,28 @@
 					d.dispose();
 				}
 				if(reinit) {
-					board = new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document);
-					boardModel = new LIFE.BoardModel(BOARD_SIZE_X, BOARD_SIZE_Y, board, updateStatus);
+					board = new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document, isWebGL());
 					play(false);
-					board.animate();
+					boardModel = new LIFE.BoardModel(BOARD_SIZE_X, BOARD_SIZE_Y, board, updateStatus);
 					boardModel.setSpeed(-speedSlider.slider('getValue'));
+					board.animate();
 					boardModel.updateStatus();
 					board.ready();
 				}
 			}
 			resetBoardModel(true);
+			function changeRenderer() {
+				if(board) {
+					var d = board;
+					board = undefined;
+					d.dispose();
+				}
+				board = new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document, isWebGL());
+				boardModel.setBoard(board);
+				board.animate();
+				boardModel.updateStatus();
+				board.ready();
+			}
 			function populateBoardModel() {
 				var dj = Math.floor(BOARD_SIZE_X / 2);
 				var startJ = Math.floor((BOARD_SIZE_X - dj) / 2);
@@ -138,11 +164,6 @@
 			});
 			$(window).keyup(function(event){
 				processKeyEvent(event, false);
-			});
-			$( document ).ready(function() {
-			    if(board) {
-			    	board.ready();
-			    }
 			});
 			
 
@@ -217,17 +238,10 @@
 					boardModel.compressBoard();
 				}
 			}
-			function saveBoard() {
-				if(false) {
-					var boardContents = boardModel.getContents();
-
-					var blob = new Blob([boardContents], {type: "text/plain;charset=utf-8"});
-					saveAs(blob, "board.life");
-				} else {
-					$("life-loader").modal();   
-				}
-			}
 			$(document).ready(function() {
+			    if(board) {
+			    	board.ready();
+			    }
 				$("#help-button").click(function() {
 					$("#myModal").modal();
 					$("#myModal").on('hidden.bs.modal', function () {
@@ -245,6 +259,12 @@
 				});
 				$("#clear-button").click(function() {
 					resetBoardModel(true);
+				});
+				$("#render-kind .btn").click(function(event) {
+					console.log(event.currentTarget.id);
+					$("#render-kind .btn").removeClass('active');
+					$(event.currentTarget).addClass('active');
+					changeRenderer();
 				});
 
 
@@ -271,7 +291,7 @@
 
 							<p>Key Controls: </p>
 							<ul>
-								<li>[Space] - Slide Board, mouse to move camera</li>
+								<li>[Space] - Slide Board, mouse to move camera, mouse wheel to zoom</li>
 								<li>[Control] - Turn mouse into erase cursor</li>
 								<li>Otherwise use the mouse to draw living cells</li>
 							</ul>

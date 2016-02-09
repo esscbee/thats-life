@@ -180,8 +180,9 @@ LIFE.BoardModel.prototype.updateStatus = function(caption) {
 		caption = '';
 	else
 		caption = caption + '  ';
+	var webGL = board.isWebGL() ? '[WebGL]' : '[Canvas]';
 	if(this.fnStatus)
-		this.fnStatus(caption + this.liveCellCount + ' living cells at generation ' + this.generationCount + ' (sp: ' + this.playSpeed + ')', growth);
+		this.fnStatus(caption + this.liveCellCount + ' living cells at generation ' + this.generationCount + ' (sp: ' + this.playSpeed + ') ' + webGL, growth);
 }
 
 LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
@@ -321,4 +322,18 @@ LIFE.BoardModel.prototype.getContents = function() {
 		json[i] = col;
 	}
 	return JSON.stringify(json);
+}
+LIFE.BoardModel.prototype.setBoard = function(board) {
+	this.board = board;
+	if(this.cells == undefined)
+		return;
+	for(var i in this.cells) {
+		var col = this.cells[i];
+		for(var j in col) {
+			var thisCell = col[j];
+			if(thisCell == ALIVE) {
+				this.board.setCell(i, j, true, this.generationCount, false);
+			}
+		}
+	}
 }
