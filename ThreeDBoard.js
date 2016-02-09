@@ -462,7 +462,8 @@ LIFE.ThreeDBoard.prototype.processKeyEvent = function(event, turnOn) {
 			case 16:
 				this.write = !turnOn && !this.erase;
 				break;
-			case 18:
+			case 32:
+				event.preventDefault();
 				if(turnOn) {
 					this.write = false;
 					this.erase = false;
@@ -478,12 +479,12 @@ LIFE.ThreeDBoard.prototype.processKeyEvent = function(event, turnOn) {
 				if(turnOn)
 					this.tcb.generate(true);
 				break;
-			case 32:
-				event.preventDefault();
-				if(turnOn)
-					this.tcb.play(this.window);
-				break;
-			// case 93:
+			// case 32:
+			// 	event.preventDefault();
+			// 	if(turnOn)
+			// 		this.tcb.play(this.window);
+			// 	break;
+			// // case 93:
 			// 	event.preventDefault();
 			// 	if(false) {
 			// 		if(turnOn)

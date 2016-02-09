@@ -40,17 +40,17 @@
 		<script src="js/bootstrap.min.js"></script>
 		<script src="js/bootstrap-slider.min.js"></script>
 		<p class="text-center">
-			<button type="button" title="Step" class="btn btn-default" aria-label="Left Align" onclick="doStep()">
-			  <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
+			<button type="button" title="Step" class="btn btn-default" aria-label="Left Align">
+			  <span id="step-button" class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
 			</button>
-			<button type="button" title="Run/Pause" class="btn btn-default" aria-label="Left Align" onclick="play()">
+			<button type="button" title="Run/Pause" class="btn btn-default" aria-label="Left Align">
 			  <span id="play-button" class="glyphicon glyphicon-play" aria-hidden="true"></span>
 			</button>
-			<button type="button" title="Clear Board" class="btn btn-default" aria-label="Left Align" onclick="resetBoardModel(true)">
+			<button type="button" title="Clear Board" class="btn btn-default" aria-label="Left Align">
 			  <span id="clear-button" class="glyphicon glyphicon-trash" aria-hidden="true"></span>
 			</button>
-			<button type="button" title="Reset Board" class="btn btn-default" aria-label="Left Align" onclick="resetAndPopulateBoardModel()">
-			  <span id="repeat-button" class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+			<button type="button" title="Reset Board" class="btn btn-default" aria-label="Left Align">
+			  <span id="reset-button" class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
 			</button>
 			<!--
 			<button type="button" class="btn btn-default" title="Compress Memory" aria-label="Left Align" onclick="compressBoard()">
@@ -233,6 +233,21 @@
 					$("#myModal").on('hidden.bs.modal', function () {
 				    });
 				});
+				$("#reset-button").click(function() {
+					resetAndPopulateBoardModel(true);
+				});
+
+				$("#step-button").click(function() {
+					doStep();
+				});
+				$("#play-button").click(function() {
+					play();
+				});
+				$("#clear-button").click(function() {
+					resetBoardModel(true);
+				});
+
+
 			});
 		</script>
 		<div class="container">
