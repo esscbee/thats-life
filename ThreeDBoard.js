@@ -3,6 +3,7 @@ var ALIVE_COLOR = 0x00a000;
 var This;
 
 LIFE.ThreeDBoard = function(width, height, window, document, webGL) {
+	This = this;
 	this.BOARD_SIZE_X = width;
 	this.BOARD_SIZE_Y = height;
 	this.SIDE = .9 ;
@@ -286,6 +287,7 @@ function mouseMove(event) {
 		}
 		return;
 	}
+	lastAnimate = 0;
 	This.rollOverMesh.position.x = pos.x;
 	This.rollOverMesh.position.y = pos.y;
 	if(This.isEditing() && event.buttons != 0) {

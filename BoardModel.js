@@ -336,4 +336,5 @@ LIFE.BoardModel.prototype.setBoard = function(board) {
 			}
 		}
 	}
+	this.board.addToggleCallback(this);
 }
