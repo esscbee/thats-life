@@ -27,6 +27,10 @@
 			#myModal {
 				margin-top: 75px;
 			}
+			div.game {
+				overflow: hidden;
+			}
+			body, html { height: 100%; }
 
 		</style>
 		<!-- Latest compiled and minified CSS -->
@@ -39,237 +43,245 @@
 		<script src="js/jquery.min.js"></script>
 		<script src="js/bootstrap.min.js"></script>
 		<script src="js/bootstrap-slider.min.js"></script>
-		<p class="text-center">
-			<button type="button" title="Step one generation" class="btn btn-default" aria-label="Left Align">
-			  <span id="step-button" class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
-			</button>
-			<button type="button" title="Play/Pause" class="btn btn-default" aria-label="Left Align">
-			  <span id="play-button" class="glyphicon glyphicon-play" aria-hidden="true"></span>
-			</button>
-			<button type="button" title="Clear board" class="btn btn-default" aria-label="Left Align">
-			  <span id="clear-button" class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-			</button>
-			<button type="button" title="Reset board to default configuration" class="btn btn-default" aria-label="Left Align">
-			  <span id="reset-button" class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
-			</button>
-			<!--
-			<button type="button" class="btn btn-default" title="Compress Memory" aria-label="Left Align" onclick="compressBoard()">
-                <span id="compress-button" class="glyphicon glyphicon-compressed" aria-hidden="true"></span>
-            </button>
-            -->
-			<span id="render-kind" class="btn-group btn-group-sm" role="group" aria-label="...">
-			  <button title="Choose WebGL renderer - faster, but less stable" id="render-kind-webgl" type="button" class="btn btn-default">WebGL</button>
-			  <button title="Choose Canvas renderer - slower, but more stable" id="render-kind-canvas" type="button" class="btn btn-default active">Canvas</button>
-			</span>
-            <span title="Play Speed">
-				<input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="-1000" data-slider-max="0" data-slider-step="50" data-slider-value="0"/>
-			</span>
-			<button type="button" title="Help" class="btn btn-default" aria-label="Left Align">
-			  <span id="help-button" class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
-			</button>
-   		</p>
-		<p id='status-field' class="text-center">Status</p>
-		<input style="display:none;" id="fileDialog" type="file" accept=".life,text/plain;charset=utf-8"/>
-		<script src="js/three.min.js"></script>
-		<script src="js/CanvasRenderer.js"></script>
-		<script src="js/Projector.js"></script>
-		<script src="js/OrbitControls.js"></script>
-		<script src="LIFE.js"></script>
-		<script src="ThreeDBoard.js"></script>
-		<script src="BoardModel.js"></script>
-		<script>
-			var BOARD_SIZE_Y = 200;
-			var BOARD_SIZE_X = 200;
-			var board;
-			var boardModel;
+		<div class="game">
+			<div id="control-panel">
+				<p class="text-center">
+					<button type="button" title="Step one generation" class="btn btn-default" aria-label="Left Align">
+					  <span id="step-button" class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
+					</button>
+					<button type="button" title="Play/Pause" class="btn btn-default" aria-label="Left Align">
+					  <span id="play-button" class="glyphicon glyphicon-play" aria-hidden="true"></span>
+					</button>
+					<button type="button" title="Clear board" class="btn btn-default" aria-label="Left Align">
+					  <span id="clear-button" class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+					</button>
+					<button type="button" title="Reset board to default configuration" class="btn btn-default" aria-label="Left Align">
+					  <span id="reset-button" class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+					</button>
+					<!--
+					<button type="button" class="btn btn-default" title="Compress Memory" aria-label="Left Align" onclick="compressBoard()">
+		                <span id="compress-button" class="glyphicon glyphicon-compressed" aria-hidden="true"></span>
+		            </button>
+		            -->
+					<span id="render-kind" class="btn-group btn-group-sm" role="group" aria-label="...">
+					  <button title="Choose WebGL renderer - faster, but less stable" id="render-kind-webgl" type="button" class="btn btn-default">WebGL</button>
+					  <button title="Choose Canvas renderer - slower, but more stable" id="render-kind-canvas" type="button" class="btn btn-default active">Canvas</button>
+					</span>
+		            <span title="Play Speed">
+						<input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="-1000" data-slider-max="0" data-slider-step="50" data-slider-value="0"/>
+					</span>
+					<button type="button" title="Help" class="btn btn-default" aria-label="Left Align">
+					  <span id="help-button" class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+					</button>
+		   		</p>
+				<p id='status-field' class="text-center">Status</p>
+			</div>
+			<input style="display:none;" id="fileDialog" type="file" accept=".life,text/plain;charset=utf-8"/>
+			<script src="js/three.min.js"></script>
+			<script src="js/CanvasRenderer.js"></script>
+			<script src="js/Projector.js"></script>
+			<script src="js/OrbitControls.js"></script>
+			<script src="LIFE.js"></script>
+			<script src="ThreeDBoard.js"></script>
+			<script src="BoardModel.js"></script>
+			<script>
+				var BOARD_SIZE_Y = 200;
+				var BOARD_SIZE_X = 200;
+				var board;
+				var boardModel;
 
-			var render = function() {
-				if(board && boardModel)
-					board.render();
-				// console.log('render!');
-			}
-			var speedSlider = $('#ex1');
-			speedSlider.slider({
-				formatter: function(value) {
+				var render = function() {
+					if(board && boardModel)
+						board.render();
+					// console.log('render!');
+				}
+				var speedSlider = $('#ex1');
+				speedSlider.slider({
+					formatter: function(value) {
+						if(boardModel) {
+							boardModel.setSpeed(-value);
+						}
+					}
+				});
+				function isWebGL() {
+					var webGL = true;
+					var active = $("#render-kind .active");
+					if(active.length > 0) {
+						webGL = active[0].id == 'render-kind-webgl';
+					}
+					return webGL;
+				}
+				function createBoard() {
+					var height = $("#control-panel").height();
+					return new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document, isWebGL(), height);
+				}
+				function resetBoardModel(reinit) {
+					if(board) {
+						var d = board;
+						board = undefined;
+						d.dispose();
+					}
 					if(boardModel) {
-						boardModel.setSpeed(-value);
+						var d = boardModel;
+						boardModel = undefined;
+						d.dispose();
+					}
+					if(reinit) {
+						board = createBoard();
+						play(false);
+						boardModel = new LIFE.BoardModel(BOARD_SIZE_X, BOARD_SIZE_Y, board, updateStatus);
+						boardModel.setSpeed(-speedSlider.slider('getValue'));
+						board.animate();
+						boardModel.updateStatus();
+						board.ready();
 					}
 				}
-			});
-			function isWebGL() {
-				var webGL = true;
-				var active = $("#render-kind .active");
-				if(active.length > 0) {
-					webGL = active[0].id == 'render-kind-webgl';
-				}
-				return webGL;
-			}
-			function resetBoardModel(reinit) {
-				if(board) {
-					var d = board;
-					board = undefined;
-					d.dispose();
-				}
-				if(boardModel) {
-					var d = boardModel;
-					boardModel = undefined;
-					d.dispose();
-				}
-				if(reinit) {
-					board = new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document, isWebGL());
-					play(false);
-					boardModel = new LIFE.BoardModel(BOARD_SIZE_X, BOARD_SIZE_Y, board, updateStatus);
-					boardModel.setSpeed(-speedSlider.slider('getValue'));
+				resetBoardModel(true);
+				function changeRenderer() {
+					if(board) {
+						var d = board;
+						board = undefined;
+						d.dispose();
+					}
+					board = createBoard();
+					boardModel.setBoard(board);
 					board.animate();
 					boardModel.updateStatus();
 					board.ready();
 				}
-			}
-			resetBoardModel(true);
-			function changeRenderer() {
-				if(board) {
-					var d = board;
-					board = undefined;
-					d.dispose();
+				function populateBoardModel() {
+					var dj = Math.floor(BOARD_SIZE_X / 2);
+					var startJ = Math.floor((BOARD_SIZE_X - dj) / 2);
+					var theI = Math.floor(BOARD_SIZE_Y / 2);
+					for(var j = startJ; j < (startJ + dj); j++) {
+						boardModel.setCell(j, theI, ALIVE, false);
+					}
+					boardModel.updateStatus();
 				}
-				board = new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document, isWebGL());
-				boardModel.setBoard(board);
-				board.animate();
-				boardModel.updateStatus();
-				board.ready();
-			}
-			function populateBoardModel() {
-				var dj = Math.floor(BOARD_SIZE_X / 2);
-				var startJ = Math.floor((BOARD_SIZE_X - dj) / 2);
-				var theI = Math.floor(BOARD_SIZE_Y / 2);
-				for(var j = startJ; j < (startJ + dj); j++) {
-					boardModel.setCell(j, theI, ALIVE, false);
+				populateBoardModel();
+
+				function resetAndPopulateBoardModel() {
+					resetBoardModel(true);
+					populateBoardModel(true);
 				}
-				boardModel.updateStatus();
-			}
-			populateBoardModel();
 
-			function resetAndPopulateBoardModel() {
-				resetBoardModel(true);
-				populateBoardModel(true);
-			}
-
-			function processKeyEvent(event, turnOn) {
-				if(board) {
-					board.processKeyEvent(event, turnOn);
-				}
-			}
-			$(window).keydown(function(event){
-				processKeyEvent(event, true);
-			});
-			$(window).keyup(function(event){
-				processKeyEvent(event, false);
-			});
-			
-
-// window.onresize = function(event) {
-			// 	//camera.aspect = window.innerWidth / window.innerHeight;
-			// 	//camera.updateProjectionMatrix();
-			// 	renderer.setSize( window.innerWidth, window.innerHeight );
-			// 	console.log('resize: ' + window.innerWidth + ', ' + window.innerHeight);
-			// }
-			function displayHelp() {
-				alert('help');
-			}
-			function updateStatus(contents, growth, turnOn) {
-				if(growth == undefined) {
-					// here have setting to toggle - bit of a hack
-					if(contents == 'play') {
-						setPlayButtonState(turnOn);
-						return;
+				function processKeyEvent(event, turnOn) {
+					if(board) {
+						board.processKeyEvent(event, turnOn);
 					}
 				}
-				var color = 'black';
-				if(growth > 0)
-					color = 'green';
-				else if(growth < 0)
-					color = 'red';
+				$(window).keydown(function(event){
+					processKeyEvent(event, true);
+				});
+				$(window).keyup(function(event){
+					processKeyEvent(event, false);
+				});
+				
 
-				if(contents == undefined)
-					contents = '';
-				var status = document.getElementById('status-field');
-				status.innerHTML = contents;
-				status.style.color = color;
-			}
-			function setPlayButtonState(isPlay) {
-				var playButton = document.getElementById("play-button");
-				if(!isPlay) {
-					playButton.className = 'glyphicon glyphicon-play';
-				} else {
-					playButton.className = 'glyphicon glyphicon-pause';
+	// window.onresize = function(event) {
+				// 	//camera.aspect = window.innerWidth / window.innerHeight;
+				// 	//camera.updateProjectionMatrix();
+				// 	renderer.setSize( window.innerWidth, window.innerHeight );
+				// 	console.log('resize: ' + window.innerWidth + ', ' + window.innerHeight);
+				// }
+				function displayHelp() {
+					alert('help');
 				}
+				function updateStatus(contents, growth, turnOn) {
+					if(growth == undefined) {
+						// here have setting to toggle - bit of a hack
+						if(contents == 'play') {
+							setPlayButtonState(turnOn);
+							return;
+						}
+					}
+					var color = 'black';
+					if(growth > 0)
+						color = 'green';
+					else if(growth < 0)
+						color = 'red';
 
-			}
-			function play(state) {
-				if(!board || !boardModel)
-					return;
-				var newState = !boardModel.playing;
-				if(state != undefined)
-					newState = state;
-				boardModel.play(window, newState);
-				setPlayButtonState(newState);
-			}
-			function doStep() {
-				if(!board || !boardModel)
-					return;
-				if(boardModel.playing) {
-					play(false);
-					return;
+					if(contents == undefined)
+						contents = '';
+					var status = document.getElementById('status-field');
+					status.innerHTML = contents;
+					status.style.color = color;
 				}
-				boardModel.generate(true);
-			}
-			// function editNavToggle(setting) {
-			// 	if(!board)
-			// 		return;
-			// 	var navEditButton = document.getElementById("edit-nav-button");
-			// 	if(!board.navEditToggle(setting)) {
-			// 		navEditButton.className = 'glyphicon glyphicon-screenshot';
-			// 	} else {
-			// 		navEditButton.className = 'glyphicon glyphicon-pencil';
-			// 	}
-			// }
-			function compressBoard() {
-				if(!boardModel) {
-					boardModel.compressBoard();
+				function setPlayButtonState(isPlay) {
+					var playButton = document.getElementById("play-button");
+					if(!isPlay) {
+						playButton.className = 'glyphicon glyphicon-play';
+					} else {
+						playButton.className = 'glyphicon glyphicon-pause';
+					}
+
 				}
-			}
-			$(document).ready(function() {
-			    if(board) {
-			    	board.ready();
-			    }
-				$("#help-button").click(function() {
-					$("#myModal").modal();
-					$("#myModal").on('hidden.bs.modal', function () {
-				    });
-				});
-				$("#reset-button").click(function() {
-					resetAndPopulateBoardModel(true);
-				});
+				function play(state) {
+					if(!board || !boardModel)
+						return;
+					var newState = !boardModel.playing;
+					if(state != undefined)
+						newState = state;
+					boardModel.play(window, newState);
+					setPlayButtonState(newState);
+				}
+				function doStep() {
+					if(!board || !boardModel)
+						return;
+					if(boardModel.playing) {
+						play(false);
+						return;
+					}
+					boardModel.generate(true);
+				}
+				// function editNavToggle(setting) {
+				// 	if(!board)
+				// 		return;
+				// 	var navEditButton = document.getElementById("edit-nav-button");
+				// 	if(!board.navEditToggle(setting)) {
+				// 		navEditButton.className = 'glyphicon glyphicon-screenshot';
+				// 	} else {
+				// 		navEditButton.className = 'glyphicon glyphicon-pencil';
+				// 	}
+				// }
+				function compressBoard() {
+					if(!boardModel) {
+						boardModel.compressBoard();
+					}
+				}
+				$(document).ready(function() {
+				    if(board) {
+				    	board.ready();
+				    }
+					$("#help-button").click(function() {
+						$("#myModal").modal();
+						$("#myModal").on('hidden.bs.modal', function () {
+					    });
+					});
+					$("#reset-button").click(function() {
+						resetAndPopulateBoardModel(true);
+					});
 
-				$("#step-button").click(function() {
-					doStep();
-				});
-				$("#play-button").click(function() {
-					play();
-				});
-				$("#clear-button").click(function() {
-					resetBoardModel(true);
-				});
-				$("#render-kind .btn").click(function(event) {
-					console.log(event.currentTarget.id);
-					$("#render-kind .btn").removeClass('active');
-					$(event.currentTarget).addClass('active');
-					changeRenderer();
-				});
+					$("#step-button").click(function() {
+						doStep();
+					});
+					$("#play-button").click(function() {
+						play();
+					});
+					$("#clear-button").click(function() {
+						resetBoardModel(true);
+					});
+					$("#render-kind .btn").click(function(event) {
+						console.log(event.currentTarget.id);
+						$("#render-kind .btn").removeClass('active');
+						$(event.currentTarget).addClass('active');
+						changeRenderer();
+					});
 
 
-			});
-		</script>
+				});
+			</script>
+		</div>
 		<div class="container">
 			<!-- Modal -->
 			<div class="modal fade" id="myModal" role="dialog">

@@ -2,7 +2,7 @@ var DEAD_COLOR = 0x1f1f1f;
 var ALIVE_COLOR = 0x00a000;
 var This;
 
-LIFE.ThreeDBoard = function(width, height, window, document, webGL) {
+LIFE.ThreeDBoard = function(width, height, window, document, webGL, topMargin) {
 	This = this;
 	this.BOARD_SIZE_X = width;
 	this.BOARD_SIZE_Y = height;
@@ -13,6 +13,7 @@ LIFE.ThreeDBoard = function(width, height, window, document, webGL) {
 	this.DX = (this.SIDE + this.GAP);
 	this.playSpeed = 300;
 	this.webGL = webGL;
+	this.topMargin = topMargin;
 
 	this.write = true;
 	this.erase = false;
@@ -32,8 +33,9 @@ LIFE.ThreeDBoard = function(width, height, window, document, webGL) {
 		console.log('0x' + color.toString(16));
 	}
 
+	var ih = window.innerWidth - this.topMargin;
 	this.scene = new THREE.Scene();
-	this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+	this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth/ih, 0.1, 1000 );
 
 	if(webGL)
 		this.renderer = new THREE.WebGLRenderer();
@@ -41,7 +43,7 @@ LIFE.ThreeDBoard = function(width, height, window, document, webGL) {
 		this.renderer = new THREE.CanvasRenderer();
 
 	this.window = window;
-	this.renderer.setSize( window.innerWidth, window.innerHeight );
+	this.renderer.setSize( window.innerWidth, ih );
 	this.canvasElement = document.body.appendChild( this.renderer.domElement );
 
 	this.canvasElement.onclick = mouseClick;
@@ -152,14 +154,16 @@ LIFE.ThreeDBoard = function(width, height, window, document, webGL) {
 
 
    window.addEventListener('resize', function() {
-	  var WIDTH = window.innerWidth,
-    	  HEIGHT = window.innerHeight;
-    	  if(This && This.renderer) {
-      		This.renderer.setSize(WIDTH, HEIGHT);
-	      	This.camera.aspect = WIDTH / HEIGHT;
-	      	This.camera.updateProjectionMatrix();
-	      }
-    });
+		if(!This)
+			return;
+		var WIDTH = window.innerWidth,
+		HEIGHT = window.innerHeight - This.topMargin;
+		if(This && This.renderer) {
+			This.renderer.setSize(WIDTH, HEIGHT);
+			This.camera.aspect = WIDTH / HEIGHT;
+			This.camera.updateProjectionMatrix();
+		}
+	});
  
 
 	window.onbeforeunload = windowClose;
