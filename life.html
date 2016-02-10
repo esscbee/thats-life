@@ -9,7 +9,7 @@
 			canvas { width: 100%; height: 100% }
 
 			#ex1Slider .slider-selection { 
-				background: #BABABA;
+				background: #009900;
 			}
 			#ex1Slider {
 				margin-left: 10px;
@@ -29,6 +29,14 @@
 			}
 			div.game {
 				overflow: hidden;
+			}
+			#control-panel {
+				padding-top: 20px;
+				padding-bottom: 5px;
+				background-color: #bbbbbb;
+
+			}
+			body {
 			}
 			body, html { height: 100%; }
 
@@ -75,6 +83,7 @@
 					</button>
 		   		</p>
 				<p id='status-field' class="text-center">Status</p>
+				<p class="text-center"><small><a href="https://github.com/esscbee/thats-life" target="github">That's Life!</a></small></p>
 			</div>
 			<input style="display:none;" id="fileDialog" type="file" accept=".life,text/plain;charset=utf-8"/>
 			<script src="js/three.min.js"></script>
@@ -112,7 +121,7 @@
 					return webGL;
 				}
 				function createBoard() {
-					var height = $("#control-panel").height();
+					var height = $("#control-panel").outerHeight() + 10 ;
 					return new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document, isWebGL(), height);
 				}
 				function resetBoardModel(reinit) {
