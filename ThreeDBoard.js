@@ -58,7 +58,7 @@ LIFE.ThreeDBoard = function(width, height, window, document, webGL, topMargin) {
 
 
 	// this.camera.position.y = 1;
-	this.camera.position.z = this.MUL * this.BOARD_SIZE_X * .3;
+	this.camera.position.z = this.MUL * this.BOARD_SIZE_X * 1;
 	var light;
 	if(true) {
 		var ambientLight = new THREE.AmbientLight( 0x606060 );

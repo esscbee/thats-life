@@ -125,6 +125,7 @@
 					return new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document, isWebGL(), height);
 				}
 				function resetBoardModel(reinit) {
+					setPlayButtonState(false);
 					if(board) {
 						var d = board;
 						board = undefined;
@@ -159,7 +160,7 @@
 					board.ready();
 				}
 				function populateBoardModel() {
-					var dj = Math.floor(BOARD_SIZE_X / 2);
+					var dj = Math.floor(BOARD_SIZE_X * 1.5);
 					var startJ = Math.floor((BOARD_SIZE_X - dj) / 2);
 					var theI = Math.floor(BOARD_SIZE_Y / 2);
 					for(var j = startJ; j < (startJ + dj); j++) {
