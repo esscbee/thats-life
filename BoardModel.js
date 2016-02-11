@@ -240,7 +240,7 @@ LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
 	// console.dir(this.liveNeighborList);
 }
 
-LIFE.BoardModel.prototype.play = function(window, state) {
+LIFE.BoardModel.prototype.play = function(window, state, stopGen) {
 	var newState = state;
 	if(newState == undefined) {
 		if(this.playing == undefined)
@@ -252,6 +252,8 @@ LIFE.BoardModel.prototype.play = function(window, state) {
 		function play() {
 			if(!This)
 				return;
+			if(stopGen)
+					stopGen(This.generationCount);
 			if(This.playing != undefined) {
 				This.generate();
 				window.setTimeout(play, This.playSpeed);
@@ -314,9 +316,10 @@ LIFE.BoardModel.prototype.dispose = function() {
 	this.board = undefined;
 	delete this.liveNeighborList;
 }
-LIFE.BoardModel.prototype.getContents = function() {
+LIFE.BoardModel.prototype.getState = function() {
 	if(this.cells == undefined)
 		return "";
+	this.compressBoard();
 	var json = {};
 	for(var i in this.cells) {
 		var inCol = this.cells[i];

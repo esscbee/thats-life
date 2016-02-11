@@ -579,6 +579,22 @@ LIFE.ThreeDBoard.prototype.compressBoard = function() {
 			delete this.cubes[i];
 	}
 }
+LIFE.ThreeDBoard.prototype.getState = function() {
+	var ret = {};
+	this.compressBoard();
+	if(this.cubes) {
+		for(var i in this.cubes) {
+			var inCol = this.cubes[i];
+			var outCol = {};
+			ret[i] = outCol;
+			for(var j in inCol) {
+				var thisCube = inCol[j];
+				outCol[j] = thisCube.material.color.getHex();
+			}
+		}
+	}
+	return JSON.stringify(ret);
+}
 
 LIFE.ThreeDBoard.prototype.playing = function(isPlaying) {
 	this.isPlaying = isPlaying;

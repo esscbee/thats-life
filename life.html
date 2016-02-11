@@ -54,6 +54,7 @@
 		<script src="js/jquery.min.js"></script>
 		<script src="js/bootstrap.min.js"></script>
 		<script src="js/bootstrap-slider.min.js"></script>
+		
 		<div class="game">
 			<div id="control-panel">
 				<p class="text-center">
@@ -84,8 +85,11 @@
 		            <span title="Play Speed">
 						<input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="-1000" data-slider-max="0" data-slider-step="50" data-slider-value="0"/>
 					</span>
-					<button type="button" title="Help" class="btn btn-default" aria-label="Left Align">
-					  <span id="help-button" class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+					<button id="help-button" type="button" title="Help" class="btn btn-default" aria-label="Left Align">
+					  <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+					</button>
+					<button id="test-button" type="button" title="Test" class="btn btn-default" aria-label="Left Align">
+					  <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
 					</button>
 		   		</p>
 				<p id='status-field' class="text-center">Status</p>
@@ -99,6 +103,7 @@
 			<script src="LIFE.js"></script>
 			<script src="ThreeDBoard.js"></script>
 			<script src="BoardModel.js"></script>
+			<script src="js/test-results.js"></script>
 			<script>
 				var BOARD_SIZE_Y = 200;
 				var BOARD_SIZE_X = 200;
@@ -185,6 +190,9 @@
 				}
 				function populateBoardModel() {
 					var dj = Math.floor(BOARD_SIZE_X * 1.5);
+					populateBoardModelN(dj);
+				}
+				function populateBoardModelN(dj) {
 					var startJ = Math.floor((BOARD_SIZE_X - dj) / 2);
 					var theI = Math.floor(BOARD_SIZE_Y / 2);
 					for(var j = startJ; j < (startJ + dj); j++) {
@@ -248,13 +256,13 @@
 					}
 
 				}
-				function play(state) {
+				function play(state, stopGen) {
 					if(!board || !boardModel)
 						return;
 					var newState = !boardModel.playing;
 					if(state != undefined)
 						newState = state;
-					boardModel.play(window, newState);
+					boardModel.play(window, newState, stopGen);
 					setPlayButtonState(newState);
 					var doAnimate = !newState || isAnimate();
 					boardModel.animate(doAnimate);
@@ -311,6 +319,7 @@
 						$("#render-kind .btn").removeClass('active');
 						$(event.currentTarget).addClass('active');
 						changeRenderer();
+
 					});
 					$("#animate-button").click(function(event) {
 						if(!This)
@@ -321,6 +330,58 @@
 							boardModel.animate(a);
 						else
 							boardModel.animate(true);
+					});
+					$("#test-button").click(function(event) {
+						initializeTests();
+						resetBoardModel(true);
+						populateBoardModelN(200);
+						updateAnimate(true);
+						var processedOuter = false;
+						play(true, function(gen) {
+							var testNum = 0;
+							var results;
+							var errors = "";
+							if(gen <= 10 || processedOuter)
+								return;
+							processedOuter = true;
+							// play(false);
+							results = boardModel.getState();
+							var theseErrors = checkResults(testNum, results);
+							if(theseErrors && theseErrors.length) {
+								errors = 'Test: ' + testNum + ' failed:\n' + theseErrors;
+							}
+							results = board.getState();
+							theseErrors = checkResults(++testNum, results);
+							if(theseErrors && theseErrors.length) {
+								if(errors.length)
+									errors += '\n';
+								errors = 'Test: ' + testNum + ' failed:\n' + theseErrors;
+							}
+							updateAnimate(false);
+							
+							play(true, function(gen) {
+								if(gen <= 100)
+									return;
+								play(false);
+								updateAnimate(true);
+								results = boardModel.getState();
+								var theseErrors = checkResults(++testNum, results);
+								if(theseErrors && theseErrors.length) {
+									errors = 'Test: ' + testNum + ' failed:\n' + theseErrors;
+								}
+								results = board.getState();
+								theseErrors = checkResults(++testNum, results);
+								if(theseErrors && theseErrors.length) {
+									if(errors.length)
+										errors += '\n';
+									errors = 'Test: ' + testNum + ' failed:\n' + theseErrors;
+								}
+								updateAnimate(true);
+								if(errors.length) {
+									console.log(errors);
+								}
+							});
+						});
 					});
 
 
