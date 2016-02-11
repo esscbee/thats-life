@@ -6,8 +6,9 @@ LIFE.BoardModel = function(width, height, board, fnStatus) {
 	this.liveCellCount = 0;
 	this.lastLiveCellCount = 0;
 	this.fnStatus = fnStatus;
-	this.generationCount = 0;
+	this.generationCount = 1;
 	this.playSpeed = 100;
+	this.doAnimate = true;
 
 	// console.log(DEAD);
 
@@ -88,7 +89,7 @@ LIFE.BoardModel.prototype.generate = function(single) {
 		var col = this.cells[i];
 		for(var j in col) {
 			var val = col[j];
-			if(val == undefined || val != ALIVE)
+			if(val == undefined || val == 0)
 				continue;
 			anyToProcess = true;
 			var ii = Number(i);
@@ -107,7 +108,7 @@ LIFE.BoardModel.prototype.generate = function(single) {
 	var endScan = new Date();
 	// console.log('Generate scan: ' + (endScan.getTime() - startDate.getTime()));
 	if(anyToProcess) {
-		var trailValue = DEAD;
+		var trailValue = 0;
 		var neighborUpdate = [];
 		for(var i in cellsToProcess) {
 			var toProcess = cellsToProcess[i];
@@ -123,10 +124,12 @@ LIFE.BoardModel.prototype.generate = function(single) {
 				if(col)
 					val = col[j];
 				if(val == undefined)
-					val = DEAD;
-				if(val == ALIVE) {
+					val = 0;
+				if(val != 0) {
 					if(liveNeighbors <= 1 || liveNeighbors >= 4) {
-						this.board.setCell(i, j, trailValue, this.generationCount, false);
+						if(single || this.doAnimate) {
+							this.board.setCell(i, j, false, this.generationCount, false);
+						}
 						appendUpdate(neighborUpdate, i, j, -1);
 						val = trailValue;
 						needsRender = true;
@@ -134,14 +137,16 @@ LIFE.BoardModel.prototype.generate = function(single) {
 					}
 				} else {
 					if(liveNeighbors == 3) {
-						this.board.setCell(i, j, ALIVE, this.generationCount, false);
+						if(single || this.doAnimate) {
+							this.board.setCell(i, j, true, this.generationCount, false);
+						}
 						appendUpdate(neighborUpdate, i, j, 1);
-						val = ALIVE;
+						val = this.generationCount;
 						needsRender = true;
 						this.liveCellCount++;
 					}
 				}
-				if(val == ALIVE) {
+				if(val != 0) {
 					newCells[i][j] = val;
 				} else {
 					if(newCells[i][j])
@@ -170,6 +175,9 @@ LIFE.BoardModel.prototype.generate = function(single) {
 	if(single || 0 == (this.generationCount % 50))
 		this.compressBoard();
 
+	if(single)
+		board.render();
+
 	// console.log('Generate - render: ' + (endDate.getTime() - endNeighbors.getTime() ));
 }
 
@@ -193,39 +201,35 @@ LIFE.BoardModel.prototype.setCell = function(i, j, state, render) {
 	if(!this.cells)
 		return;
 	var col = this.cells[i];
-	if(state === false)
-		state = DEAD;
-	else if(state === true)
-		state = ALIVE;
-	else if(state == undefined) {
-		state = ALIVE;
+	if(state == undefined) {
+		state = true;
 		if(col != undefined) {
 			var cell = col[j];
-			if(cell == ALIVE)
-				state = DEAD;
+			if(cell != 0)
+				state = false;
 		}
 	}
-	if(state != ALIVE)
-		state = DEAD;
 	// console.log(' resulting state: ' + state);
-	var inc = state == ALIVE ? 1 : -1;
+	var inc = state ? 1 : -1;
 	if(col) {
 		var val = col[j];
-		if(val != undefined && val == state)
+		if(val == undefined && !state)
+			return;
+		if(val && state)
 			return;
 	} else {
-		if(state == DEAD)
+		if(!state)
 			return;
 		col = [];
 		this.cells[i] = col;
 	}
-	if(state == DEAD) {
+	if(!state) {
 		if(col[j])
 			delete(col[j]);
 		else
 			return;
 	} else {
-		col[j] = state;
+		col[j] = this.generationCount;
 	}
 	this.addNeighbors(i, j, inc);
 	this.board.setCell(i, j, state, this.generationCount, render);
@@ -257,6 +261,7 @@ LIFE.BoardModel.prototype.play = function(window, state) {
 	} else {
 		this.playing = undefined;
 		this.compressBoard();
+		this.syncBoard();
 	}
 	this.fnStatus('play', undefined, this.playing);
 	this.board.playing(this.playing);
@@ -331,10 +336,26 @@ LIFE.BoardModel.prototype.setBoard = function(board) {
 		var col = this.cells[i];
 		for(var j in col) {
 			var thisCell = col[j];
-			if(thisCell == ALIVE) {
-				this.board.setCell(i, j, true, this.generationCount, false);
+			if(thisCell != 0) {
+				this.board.setCell(i, j, true, thisCell, false);
 			}
 		}
 	}
 	this.board.addToggleCallback(this);
+}
+LIFE.BoardModel.prototype.animate = function(doAnimate) {
+	if(this.cells && this.board) {
+		if(!this.doAnimate)
+			this.syncBoard();
+		this.doAnimate = doAnimate;
+		this.board.animate(doAnimate);
+	}
+}
+LIFE.BoardModel.prototype.syncBoard = function() {
+	if(this.doAnimate || !this.board) {
+		return;
+	}
+	this.board.clearCells();
+	this.setBoard(this.board);
+	this.board.render();
 }

@@ -36,6 +36,9 @@
 				background-color: #bbbbbb;
 
 			}
+			#animate-button.active {
+				background-color: #009900
+			}
 			body {
 			}
 			body, html { height: 100%; }
@@ -54,17 +57,20 @@
 		<div class="game">
 			<div id="control-panel">
 				<p class="text-center">
-					<button type="button" title="Step one generation" class="btn btn-default" aria-label="Left Align">
-					  <span id="step-button" class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
+					<button id="step-button" type="button" title="Step one generation" class="btn btn-default" aria-label="Left Align">
+					  <span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span>
 					</button>
-					<button type="button" title="Play/Pause" class="btn btn-default" aria-label="Left Align">
-					  <span id="play-button" class="glyphicon glyphicon-play" aria-hidden="true"></span>
+					<button id="play-button" type="button" title="Play/Pause" class="btn btn-default" aria-label="Left Align">
+					  <span id="play-button-glyph" class="glyphicon glyphicon-play" aria-hidden="true"></span>
 					</button>
-					<button type="button" title="Clear board" class="btn btn-default" aria-label="Left Align">
-					  <span id="clear-button" class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+					<button id="animate-button" type="button" title="Toggle rendering while playing" class="btn btn-default active" aria-label="Left Align">
+					  <span id="animate-button-glyph" class="glyphicon glyphicon-facetime-video" aria-hidden="true"></span>
 					</button>
-					<button type="button" title="Reset board to default configuration" class="btn btn-default" aria-label="Left Align">
-					  <span id="reset-button" class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+					<button id="clear-button" type="button" title="Clear board" class="btn btn-default" aria-label="Left Align">
+					  <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+					</button>
+					<button id="reset-button" data-toggle="button" type="button" title="Reset board to default configuration" class="btn btn-default" aria-label="Left Align">
+					  <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
 					</button>
 					<!--
 					<button type="button" class="btn btn-default" title="Compress Memory" aria-label="Left Align" onclick="compressBoard()">
@@ -120,6 +126,25 @@
 					}
 					return webGL;
 				}
+				function isAnimate() {
+					var v = $("#animate-button");
+					var ret = true;
+					if(v)
+						ret = v.hasClass("active");
+					return ret;
+				}
+				function updateAnimate(doAnimate) {
+					var anim_button = $("#animate-button");
+					if(doAnimate == undefined)
+						doAnimate = isAnimate();
+					else {
+						if(doAnimate) {
+							anim_button.addClass("active");
+						} else {
+							anim_button.removeClass("active");
+						}
+					}
+				}
 				function createBoard() {
 					var height = $("#control-panel").outerHeight() + 10 ;
 					return new LIFE.ThreeDBoard(BOARD_SIZE_X, BOARD_SIZE_Y, window, document, isWebGL(), height);
@@ -141,12 +166,11 @@
 						play(false);
 						boardModel = new LIFE.BoardModel(BOARD_SIZE_X, BOARD_SIZE_Y, board, updateStatus);
 						boardModel.setSpeed(-speedSlider.slider('getValue'));
-						board.animate();
 						boardModel.updateStatus();
 						board.ready();
+						boardModel.animate(true);
 					}
 				}
-				resetBoardModel(true);
 				function changeRenderer() {
 					if(board) {
 						var d = board;
@@ -155,7 +179,7 @@
 					}
 					board = createBoard();
 					boardModel.setBoard(board);
-					board.animate();
+					updateAnimate();
 					boardModel.updateStatus();
 					board.ready();
 				}
@@ -164,12 +188,10 @@
 					var startJ = Math.floor((BOARD_SIZE_X - dj) / 2);
 					var theI = Math.floor(BOARD_SIZE_Y / 2);
 					for(var j = startJ; j < (startJ + dj); j++) {
-						boardModel.setCell(j, theI, ALIVE, false);
+						boardModel.setCell(j, theI, 1, false);
 					}
 					boardModel.updateStatus();
 				}
-				populateBoardModel();
-
 				function resetAndPopulateBoardModel() {
 					resetBoardModel(true);
 					populateBoardModel(true);
@@ -218,7 +240,7 @@
 					status.style.color = color;
 				}
 				function setPlayButtonState(isPlay) {
-					var playButton = document.getElementById("play-button");
+					var playButton = document.getElementById("play-button-glyph");
 					if(!isPlay) {
 						playButton.className = 'glyphicon glyphicon-play';
 					} else {
@@ -234,6 +256,8 @@
 						newState = state;
 					boardModel.play(window, newState);
 					setPlayButtonState(newState);
+					var doAnimate = !newState || isAnimate();
+					boardModel.animate(doAnimate);
 				}
 				function doStep() {
 					if(!board || !boardModel)
@@ -260,6 +284,7 @@
 					}
 				}
 				$(document).ready(function() {
+					resetAndPopulateBoardModel();
 				    if(board) {
 				    	board.ready();
 				    }
@@ -286,6 +311,16 @@
 						$("#render-kind .btn").removeClass('active');
 						$(event.currentTarget).addClass('active');
 						changeRenderer();
+					});
+					$("#animate-button").click(function(event) {
+						if(!This)
+							return;
+						var a = !isAnimate();
+						updateAnimate(a);
+						if(boardModel.playing)
+							boardModel.animate(a);
+						else
+							boardModel.animate(true);
 					});
 
 

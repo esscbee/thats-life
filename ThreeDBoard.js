@@ -146,7 +146,7 @@ LIFE.ThreeDBoard = function(width, height, window, document, webGL, topMargin) {
 		this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
 		this.controls.damping = 0.2;
 		this.controls.addEventListener( 'change', function() {
-			if(This)
+			if(This && !This.playing)
 				This.render();
 		} );
 	}
@@ -369,7 +369,7 @@ LIFE.ThreeDBoard.prototype.isEditing = function() {
 LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, generation, doRender) {
 	// console.log('ThreeDBoard.setCell: (' + i + ', ' + j + ') state: ' + state + ' doRender: ' + doRender );
 	var col = this.cubes[i];
-	if(col == undefined && (state == undefined || state == DEAD))
+	if(col == undefined && (state == undefined || !state))
 		return;
 
 	if(col == undefined) {
@@ -381,7 +381,7 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, generation, doRender)
 	var color = this.generationColors[ generation % colorSize ];
 
 	if(val == null) {
-		if(state == ALIVE) {
+		if(state) {
 			var geometry = new THREE.CubeGeometry( this.SIDE, this.SIDE, this.SIDE);
 			var material = new THREE.MeshPhongMaterial({ color: color
 											// , specular: 0xffffff
@@ -398,7 +398,7 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, generation, doRender)
 			val = cube;
 		}
 	} else {
-		if(state == DEAD) {
+		if(!state) {
 			val.visible = false;
 		} else {
 			val.visible = true;
@@ -411,9 +411,14 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, generation, doRender)
 
 }
 var lastAnimate = 0;
-LIFE.ThreeDBoard.prototype.animate = function() {
+LIFE.ThreeDBoard.prototype.animate = function(turnOn) {
+	if(!turnOn) {
+		this.animateOff = true;
+		return;
+	}
+	this.animateOff = false;
 	function animate() {
-		if(!This || This.terminated)
+		if(!This || This.terminated || This.animateOff)
 			return;
 		requestAnimationFrame( animate );
 		var dt;
@@ -445,6 +450,8 @@ LIFE.ThreeDBoard.prototype.navEditToggle = function(setting) {
 	return newState;
 }
 LIFE.ThreeDBoard.prototype.setControls = function(turnOn) {
+	if(this.animateOff)
+		turnOn = false;
 	this.controls.enabled = turnOn;
 	this.rollOverMesh.material.visible = !turnOn;
 	this.renderer.domElement.style.cursor = turnOn ? 'move' : 'none';
@@ -581,4 +588,15 @@ LIFE.ThreeDBoard.prototype.setSpeed = function(newSpeed) {
 }
 LIFE.ThreeDBoard.prototype.isWebGL = function() {
 	return this.webGL;
+}
+LIFE.ThreeDBoard.prototype.clearCells = function() {
+	for(var i in this.cubes) {
+		var col = this.cubes[i];
+		for(var j in col) {
+			var thisCube = col[j];
+			delete col[j];
+			this.scene.remove(thisCube);
+		}
+		delete this.cubes[i];
+	}	
 }
