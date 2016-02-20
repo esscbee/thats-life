@@ -33,7 +33,7 @@ LIFE.ThreeDBoard = function(width, height, window, document, webGL, topMargin) {
 		console.log('0x' + color.toString(16));
 	}
 
-	var ih = window.innerWidth - this.topMargin;
+	var ih = window.innerHeight - this.topMargin;
 	this.scene = new THREE.Scene();
 	this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth/ih, 0.1, 1000 );
 
@@ -209,7 +209,14 @@ function generalPosition(ex, ey, mouse) {
 	var position = {};
 	if(!This)
 		return;
-	mouse.set( ( ex / window.innerWidth ) * 2 - 1, - ( ey / window.innerHeight ) * 2 + 1 );
+	var iw = window.innerWidth;
+	var ih = window.innerHeight;
+
+	if(true) {
+		iw  = This.canvasElement.offsetWidth;
+		ih = This.canvasElement.offsetHeight;
+	}
+	mouse.set( ( ex / iw ) * 2 - 1, - ( ey / ih ) * 2 + 1 );
 
 	This.raycaster.setFromCamera( mouse, This.camera );
 
