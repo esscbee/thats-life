@@ -168,12 +168,12 @@
 					}
 					if(reinit) {
 						board = createBoard();
-						play(false);
 						boardModel = new LIFE.BoardModel(BOARD_SIZE_X, BOARD_SIZE_Y, board, updateStatus);
 						boardModel.setSpeed(-speedSlider.slider('getValue'));
 						boardModel.updateStatus();
 						board.ready();
 						boardModel.animate(true);
+						play(true);
 					}
 				}
 				function changeRenderer() {
