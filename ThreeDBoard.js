@@ -14,6 +14,7 @@ LIFE.ThreeDBoard = function(width, height, window, document, webGL, topMargin) {
 	this.playSpeed = 300;
 	this.webGL = webGL;
 	this.topMargin = topMargin;
+	this.deadcells = [];
 
 	this.write = true;
 	this.erase = false;
@@ -179,6 +180,7 @@ LIFE.ThreeDBoard.prototype.dispose = function() {
 	this.terminated = true;
 	this.camera = undefined;
 	this.controls = undefined;
+	this.deadcells = undefined;
 
 	while(this.scene.children.length != 0) {
 		var thisChild = this.scene.children[this.scene.children.length-1];
@@ -389,13 +391,7 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, generation, doRender)
 
 	if(val == null) {
 		if(state) {
-			var geometry = new THREE.CubeGeometry( this.SIDE, this.SIDE, this.SIDE);
-			var material = new THREE.MeshPhongMaterial({ color: color
-											// , specular: 0xffffff
-											// , shininess: 100 
-										});
-			// material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
-			var cube = new THREE.Mesh( geometry, material );
+			var cube = this.getCube(color);
 			cube.position.x = (i - (this.BOARD_SIZE_X / 2)) * (this.SIDE + this.GAP);
 			cube.position.y = (j - (this.BOARD_SIZE_Y / 2)) * (this.SIDE + this.GAP);
 			cube.lifeX = i;
@@ -406,7 +402,9 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, generation, doRender)
 		}
 	} else {
 		if(!state) {
+			this.deadcells.push(val);
 			val.visible = false;
+			delete col[j];
 		} else {
 			val.visible = true;
 			val.material.color.setHex(color);
@@ -443,7 +441,22 @@ LIFE.ThreeDBoard.prototype.animate = function(turnOn) {
 	}
 	animate();
 }
-
+LIFE.ThreeDBoard.prototype.getCube = function(color) {
+	var cube;
+	if(this.deadcells.length > 0) {
+		cube = this.deadcells.shift();
+		cube.material.color.setHex(color);
+	} else {
+		var geometry = new THREE.CubeGeometry( this.SIDE, this.SIDE, this.SIDE);
+		var material = new THREE.MeshPhongMaterial({ color: color
+										// , specular: 0xffffff
+										// , shininess: 100 
+									});
+		// material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+		cube = new THREE.Mesh( geometry, material );
+	}
+	return cube;
+}
 /*
 	pass setting, else it toggles.  returns new state
 */
