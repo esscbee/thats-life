@@ -389,24 +389,23 @@ LIFE.ThreeDBoard.prototype.setCell = function(i, j, state, generation, doRender)
 	var colorSize = this.generationColors.length;
 	var color = this.generationColors[ generation % colorSize ];
 
-	if(val == null) {
+	if(val == undefined) {
 		if(state) {
 			var cube = this.getCube(color);
 			cube.position.x = (i - (this.BOARD_SIZE_X / 2)) * (this.SIDE + this.GAP);
 			cube.position.y = (j - (this.BOARD_SIZE_Y / 2)) * (this.SIDE + this.GAP);
 			cube.lifeX = i;
 			cube.lifeY = j;
-			this.scene.add(cube);
 			this.cubes[i][j] = cube;
 			val = cube;
 		}
 	} else {
 		if(!state) {
 			this.deadcells.push(val);
-			val.visible = false;
+			val.material.visible = false;
 			delete col[j];
 		} else {
-			val.visible = true;
+			val.material.visible = true;
 			val.material.color.setHex(color);
 		}
 	}
@@ -446,6 +445,7 @@ LIFE.ThreeDBoard.prototype.getCube = function(color) {
 	if(this.deadcells.length > 0) {
 		cube = this.deadcells.shift();
 		cube.material.color.setHex(color);
+		cube.material.visible = true;
 	} else {
 		var geometry = new THREE.CubeGeometry( this.SIDE, this.SIDE, this.SIDE);
 		var material = new THREE.MeshPhongMaterial({ color: color
@@ -454,6 +454,7 @@ LIFE.ThreeDBoard.prototype.getCube = function(color) {
 									});
 		// material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
 		cube = new THREE.Mesh( geometry, material );
+		this.scene.add(cube);
 	}
 	return cube;
 }
